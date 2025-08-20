@@ -22,6 +22,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<Settings />} />
           <Route path="ai" element={<Ai />} />
           <Route path="autoslide" element={<Autoslide />} /> 
+          
         </Route>
       </Routes>
     </Router>
