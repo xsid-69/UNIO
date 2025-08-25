@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import BottomNavbar from './BottomNavbar';
 import Profile from '../pages/Profile'; // Import Profile component
+import { useTheme } from '../context/ThemeContext'; // Import useTheme hook
 
 export default function Layout({ sidebar, rightPanel }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme(); // Use the theme hook
+
   return (
-  <div className="w-full h-screen bg-gradient-to-tr text-white from-black via-slate-900 to-black">
+    <div className="w-full h-screen">
       {/* Hamburger for mobile */}
       <button
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded bg-[#222748]"
@@ -18,7 +21,17 @@ export default function Layout({ sidebar, rightPanel }) {
         <span className="block w-6 h-0.5 bg-white mb-1"></span>
         <span className="block w-6 h-0.5 bg-white"></span>
       </button>
-  <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full ">
+
+      {/* Theme Toggle Button */}
+      <button
+        className="fixed top-4 right-28 z-50 p-2 rounded-full bg-gray-700 text-white shadow-lg"
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+      >
+        {theme === 'dark' ? '☀️' : '🌙'}
+      </button>
+
+      <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full">
         {/* Sidebar */}
         {/* Mobile: hidden unless open, Desktop: always visible */}
         <aside
@@ -54,14 +67,14 @@ export default function Layout({ sidebar, rightPanel }) {
         {/* Profile Aside for desktop */}
         <aside
           id="Profile"
-          className="hidden md:flex flex-col items-center bg-[#222748]/10 backdrop-blur-md w-[22vw]  p-8 text-white overflow-y-auto"
+          className="hidden md:flex flex-col items-center bg-[#222748]/10 backdrop-blur-md w-[22vw] p-8 text-white overflow-y-auto"
         >
           <Profile />
         </aside>
         {/* Profile Circle for mobile */}
         <>
           <button
-            className="md:hidden fixed top-4 right-4 z-50 w-14 h-14 bg-[#232946]  rounded-full flex items-center justify-center shadow-lg border-2 border-[#13c4a3] text-white text-lg font-bold"
+            className="md:hidden fixed top-4 right-4 z-50 w-14 h-14 bg-[#232946] rounded-full flex items-center justify-center shadow-lg border-2 border-[#13c4a3] text-white text-lg font-bold"
             onClick={() => setProfileOpen(true)}
             aria-label="Open profile panel"
           >
