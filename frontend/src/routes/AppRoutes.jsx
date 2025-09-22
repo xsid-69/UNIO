@@ -8,6 +8,12 @@ import Settings from '../pages/Settings';
 import Ai from '../pages/Ai';
 import Autoslide from '../components/Autoslide'; // Assuming Autoslide is in ../components/Autoslide.jsx
 import Sidebar from '../components/Sidebar'; // Assuming Sidebar is in ../components/Sidebar.jsx
+import NotesPage from '../pages/resources/notes/NotesPage';
+import SolvedQPage from '../pages/resources/SolvedQues/SolvedQPage';
+import SyllabusPage from './../pages/resources/Syllabus/SyllabusPage';
+import PyqsPage from '../pages/resources/PYQS/PyqsPage'; // Added missing import
+import ProfileSettings from './../pages/settings/ProfileSettings';
+
  // Assuming Chatbot is in ../components/Chatbot.jsx
 
 const AppRoutes = () => {
@@ -21,9 +27,13 @@ const AppRoutes = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
           <Route path="ai" element={<Ai />} />
-          <Route path="autoslide" element={<Autoslide />} /> 
-          
-        </Route>
+          <Route path="autoslide" element={<Autoslide />} />
+          <Route path="notespage" element={<NotesPage/>}/>
+          <Route path="pyqspage" element={<PyqsPage/>}/>
+          <Route path="solvedqpage" element={<SolvedQPage/>}/>
+          <Route path="syllabus" element={<SyllabusPage/>}/>
+          <Route path="profilesettings" element={<ProfileSettings/>}/>
+        </Route> {/* Closing tag for the Layout route */}
       </Routes>
     </Router>
   );
