@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import BottomNavbar from './BottomNavbar';
 import Profile from '../pages/Profile'; // Import Profile component
-import { useTheme } from '../context/ThemeContext'; // Import useTheme hook
 
 export default function Layout({ sidebar, rightPanel }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme(); // Use the theme hook
 
   return (
     <div className="w-full h-screen">
@@ -20,15 +18,6 @@ export default function Layout({ sidebar, rightPanel }) {
         <span className="block w-6 h-0.5 bg-white mb-1"></span>
         <span className="block w-6 h-0.5 bg-white mb-1"></span>
         <span className="block w-6 h-0.5 bg-white"></span>
-      </button>
-
-      {/* Theme Toggle Button */}
-      <button
-        className="fixed top-4 right-28 z-50 p-2 rounded-full bg-gray-700 text-white shadow-lg"
-        onClick={toggleTheme}
-        aria-label="Toggle theme"
-      >
-        {theme === 'dark' ? '☀️' : '🌙'}
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full">

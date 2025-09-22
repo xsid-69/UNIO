@@ -1,27 +1,13 @@
 @import "tailwindcss";
 
-.dark {
-  --bg-color: #020412;
-  --text-color: #ffffff;
-  --grid-color: rgba(200, 220, 255, 0.2);
-  --radial-gradient: radial-gradient(ellipse_at_50%_-20%,#1a2c5a,transparent_70%);
-}
-
-.light {
-  --bg-color: #ffffff;
-  --text-color: #000000;
-  --grid-color: rgba(0, 0, 0, 0.1);
-  --radial-gradient: radial-gradient(ellipse_at_50%_-20%,#e0e0e0,transparent_70%); /* Lighter gradient for light theme */
-}
-
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: #020412; /* Default dark background */
+  color: #ffffff; /* Default dark text color */
 }
 
 .grid-background {
-  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
-                    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(200, 220, 255, 0.2) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(200, 220, 255, 0.2) 1px, transparent 1px);
 }
 
 .mySwiper {
