@@ -1,22 +1,34 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '../../store/authSlice';
+import { useSelector } from 'react-redux';
 
 const ProfileSettings = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate('/login');
+  };
+   const { user } = useSelector((state) => state.auth);
   return (
-    <div className="min-h-screen md:w-[65vw] w-[95vw] bg-gray-900 p-4 md:p-8 text-gray-200 overflow-y-auto scrollbar-hide mx-auto">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-semibold mb-8 text-white text-center">My Profile</h1>
+    <div className="min-h-[93vh] md:w-[65vw] w-[82vw] md:mr-0 mr-10  bg-gray-900 p-4 md:p-8 text-gray-200  flex flex-col items-center"> {/* Applied centering, width, min-height, and flexbox for centering */}
+      <div className="max-w-2xl overflow-y-auto scrollbar-hide h-[80vh]"> {/* Added overflow-y-auto, scrollbar-hide, and h-[80vh] for PC scrollability */}
+        <h1 className="text-2xl md:text-3xl font-semibold mb-5 text-white text-center">My Profile</h1>
 
         {/* Profile Image Section */}
         <div className="flex flex-col md:flex-row items-center justify-center mb-8 space-y-4 md:space-y-0">
           <div className="relative w-24 h-24 rounded-full overflow-hidden md:mr-6 border-2 border-gray-600">
             <img
-              src="https://ik.imagekit.io/fbb6rjjzu/social-media-images/2cedfbeb-0cfe-4a13-bcf9-d71de0397e2b_kD7Zlq9GM?updatedAt=1758531248955"
+              src={user?.profilePic}
               alt="Profile"
               className="w-full h-full object-cover"
             />
           </div>
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-center">
-            <button className="w-full md:w-auto flex items-center justify-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors">
+            <button id="chooseFileButton" className="w-full md:w-auto flex items-center justify-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 mr-2"
@@ -33,9 +45,11 @@ const ProfileSettings = () => {
               </svg>
               Change Image
             </button>
-            <button className="w-full md:w-auto px-4 py-2 border border-gray-600 text-gray-200 rounded-md hover:bg-gray-800 transition-colors">
+         
+            <button className="w-full md:w-auto px-4 py-2 border border-gray-600 text-gray-200 rounded-md hover:bg-red-500 transition-colors">
               Remove Image
             </button>
+            <button id='logout' onClick={handleLogout} className='w-full md:w-auto px-4 py-2 border border-gray-600 text-gray-200 rounded-md hover:bg-red-500 transition-colors'>Logout</button>
           </div>
         </div>
         <p className="text-sm text-gray-400 mb-8 text-center">
@@ -52,7 +66,7 @@ const ProfileSettings = () => {
             type="text"
             id="firstName"
             className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-white"
-            value="Brian"
+            
             readOnly
           />
         </div>
@@ -64,7 +78,7 @@ const ProfileSettings = () => {
             type="text"
             id="lastName"
             className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-white"
-            value="Frederin"
+            
             readOnly
           />
         </div>
@@ -84,7 +98,7 @@ const ProfileSettings = () => {
               type="email"
               id="email"
               className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-white"
-              value="brianfrederin@email.com"
+              
               readOnly
             />
           </div>
@@ -112,22 +126,7 @@ const ProfileSettings = () => {
           </button>
         </div>
 
-        {/* 2-Step Verifications */}
-        <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
-          <div>
-            <h3 className="text-base font-medium text-gray-100">
-              2-Step Verifications
-            </h3>
-            <p className="text-sm text-gray-400">
-              Add an additional layer of security to your account during login.
-            </p>
-          </div>
-          {/* Toggle Switch */}
-          <label htmlFor="twoStepVerification" className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="twoStepVerification" className="sr-only peer" />
-            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
+        
       </div>
 
       {/* Support Access Section */}

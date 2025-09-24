@@ -1,176 +1,127 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../store/authSlice';
 
-const Form = () => {
+const Login = () => {
+  const { register, handleSubmit } = useForm();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error, user } = useSelector((state) => state.auth);
+
+  const loginHandler = (data) => {
+    dispatch(loginUser(data));
+  };
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   return (
-    <StyledWrapper>
-      <div className="form-container">
-        <p className="title">Login</p>
-        <form className="form">
-          <div className="input-group">
-            <label htmlFor="username">Username</label>
-            <input type="text" name="username" id="username" placeholder />
-          </div>
-          <div className="input-group">
-            <label htmlFor="password">Password</label>
-            <input type="password" name="password" id="password" placeholder />
-            <div className="forgot">
-              <a rel="noopener noreferrer" href="#">Forgot Password ?</a>
-            </div>
-          </div>
-          <button className="sign">Sign in</button>
-        </form>
-        <div className="social-message">
-          <div className="line" />
-          <p className="message">Login with social accounts</p>
-          <div className="line" />
-        </div>
-        <div className="social-icons">
-          <button aria-label="Log in with Google" className="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-current">
-              <path d="M16.318 13.714v5.484h9.078c-0.37 2.354-2.745 6.901-9.078 6.901-5.458 0-9.917-4.521-9.917-10.099s4.458-10.099 9.917-10.099c3.109 0 5.193 1.318 6.38 2.464l4.339-4.182c-2.786-2.599-6.396-4.182-10.719-4.182-8.844 0-16 7.151-16 16s7.156 16 16 16c9.234 0 15.365-6.49 15.365-15.635 0-1.052-0.115-1.854-0.255-2.651z" />
-            </svg>
-          </button>
-          <button aria-label="Log in with Twitter" className="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-current">
-              <path d="M31.937 6.093c-1.177 0.516-2.437 0.871-3.765 1.032 1.355-0.813 2.391-2.099 2.885-3.631-1.271 0.74-2.677 1.276-4.172 1.579-1.192-1.276-2.896-2.079-4.787-2.079-3.625 0-6.563 2.937-6.563 6.557 0 0.521 0.063 1.021 0.172 1.495-5.453-0.255-10.287-2.875-13.52-6.833-0.568 0.964-0.891 2.084-0.891 3.303 0 2.281 1.161 4.281 2.916 5.457-1.073-0.031-2.083-0.328-2.968-0.817v0.079c0 3.181 2.26 5.833 5.26 6.437-0.547 0.145-1.131 0.229-1.724 0.229-0.421 0-0.823-0.041-1.224-0.115 0.844 2.604 3.26 4.5 6.14 4.557-2.239 1.755-5.077 2.801-8.135 2.801-0.521 0-1.041-0.025-1.563-0.088 2.917 1.86 6.36 2.948 10.079 2.948 12.067 0 18.661-9.995 18.661-18.651 0-0.276 0-0.557-0.021-0.839 1.287-0.917 2.401-2.079 3.281-3.396z" />
-            </svg>
-          </button>
-          <button aria-label="Log in with GitHub" className="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-5 h-5 fill-current">
-              <path d="M16 0.396c-8.839 0-16 7.167-16 16 0 7.073 4.584 13.068 10.937 15.183 0.803 0.151 1.093-0.344 1.093-0.772 0-0.38-0.009-1.385-0.015-2.719-4.453 0.964-5.391-2.151-5.391-2.151-0.729-1.844-1.781-2.339-1.781-2.339-1.448-0.989 0.115-0.968 0.115-0.968 1.604 0.109 2.448 1.645 2.448 1.645 1.427 2.448 3.744 1.74 4.661 1.328 0.14-1.031 0.557-1.74 1.011-2.135-3.552-0.401-7.287-1.776-7.287-7.907 0-1.751 0.62-3.177 1.645-4.297-0.177-0.401-0.719-2.031 0.141-4.235 0 0 1.339-0.427 4.4 1.641 1.281-0.355 2.641-0.532 4-0.541 1.36 0.009 2.719 0.187 4 0.541 3.043-2.068 4.381-1.641 4.381-1.641 0.859 2.204 0.317 3.833 0.161 4.235 1.015 1.12 1.635 2.547 1.635 4.297 0 6.145-3.74 7.5-7.296 7.891 0.556 0.479 1.077 1.464 1.077 2.959 0 2.14-0.020 3.864-0.020 4.385 0 0.416 0.28 0.916 1.104 0.755 6.4-2.093 10.979-8.093 10.979-15.156 0-8.833-7.161-16-16-16z" />
-            </svg>
-          </button>
-        </div>
-        <p className="signup">Don't have an account?
-          <a rel="noopener noreferrer" href="#" className>Sign up</a>
-        </p>
+    <div className="min-h-screen flex items-center justify-center  text-white p-4 relative overflow-hidden">
+      {/* Abstract background shapes - simplified for Tailwind */}
+      <div className="absolute inset-0 opacity-15">
+        <svg className="w-full h-full" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M-100 0L1540 0L1540 800L-100 800L-100 0Z" fill="url(#paint0_linear_1_2)"/>
+          <path d="M100 0L1340 0L1340 800L100 800L100 0Z" fill="url(#paint1_linear_1_2)"/>
+          <defs>
+            <linearGradient id="paint0_linear_1_2" x1="720" y1="0" x2="720" y2="800" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#222748"/>
+              <stop offset="1" stopColor="#181f2a"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear_1_2" x1="720" y1="0" x2="720" y2="800" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#222748"/>
+              <stop offset="1" stopColor="#181f2a"/>
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
-    </StyledWrapper>
+
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center w-full max-w-6xl mx-auto bg-[#222748]/50 backdrop-blur-md rounded-xl shadow-lg p-8 lg:p-16">
+        {/* Left Section: Welcome */}
+        <div className="flex-1 text-center lg:text-left lg:pr-16 mb-10 lg:mb-0">
+          <div className="text-4xl font-bold mb-4">
+            <span className="text-[#13c4a3]">UNIO</span>
+          </div>
+          <h1 className="text-5xl lg:text-6xl font-bold mb-6">Welcome!</h1>
+          <p className="text-lg text-gray-300 mb-8 max-w-md mx-auto lg:mx-0">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          </p>
+          <button className="bg-[#13c4a3] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#10a080] transition-colors">
+            Learn More
+          </button>
+        </div>
+
+        {/* Right Section: Sign In Form */}
+        <div className="w-full max-w-md bg-[#222748]/70 p-8 rounded-xl shadow-xl">
+          <h2 className="text-3xl font-bold text-center mb-8">Sign in</h2>
+          <form onSubmit={handleSubmit(loginHandler)} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <input
+                {...register('email', { required: true })}
+                type="email"
+                id="email"
+                name="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-[#181f2a] border border-[#3a446e] focus:outline-none focus:border-[#13c4a3] text-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <input
+                {...register('password', { required: true })}
+                type="password"
+                id="password"
+                name="password"
+                autoComplete="current-password"
+                placeholder="********"
+                className="w-full px-4 py-3 rounded-lg bg-[#181f2a] border border-[#3a446e] focus:outline-none focus:border-[#13c4a3] text-white"
+              />
+            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg font-semibold text-white
+                         bg-gradient-to-r from-[#ff7e5f] to-[#feb47b] hover:from-[#fe6b4e] hover:to-[#fd9e5e] transition-all duration-300 disabled:opacity-50"
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-8">
+            <button
+              type="button"
+              className="w-full py-3 rounded-lg font-semibold text-white bg-[#181f2a] border border-[#3a446e] flex items-center justify-center space-x-2 hover:bg-[#3a446e] transition-colors"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.0003 4.75C14.0213 4.75 15.8013 5.49062 17.1413 6.71937L20.0003 3.86062C17.9413 1.97062 15.1713 0.75 12.0003 0.75C7.72031 0.75 4.00031 3.14062 2.26031 6.71937L6.03031 9.67937C6.84031 7.06937 9.25031 4.75 12.0003 4.75Z" fill="#EA4335"/>
+                <path d="M21.9997 12.25C21.9997 11.59 21.9397 10.98 21.8297 10.38H12.0003V14.38H17.4003C17.1897 15.57 16.4397 16.59 15.3497 17.29L19.1197 20.25C21.3097 18.27 22.6997 15.45 22.6997 12.25H21.9997V12.25Z" fill="#4285F4"/>
+                <path d="M6.03031 9.67937L2.26031 6.71937C1.56031 8.41937 1.18031 10.28 1.18031 12.25C1.18031 14.22 1.56031 16.0806 2.26031 17.7806L6.03031 14.8206C5.79031 14.1606 5.66031 13.42 5.66031 12.25C5.66031 11.08 5.79031 10.34 6.03031 9.67937Z" fill="#FBBC05"/>
+                <path d="M12.0003 23.75C15.1713 23.75 17.9413 22.53 20.0003 20.6406L17.1413 17.29C15.8013 18.5194 14.0213 19.25 12.0003 19.25C9.25031 19.25 6.84031 16.9306 6.03031 14.3206L2.26031 17.7806C4.00031 21.3594 7.72031 23.75 12.0003 23.75Z" fill="#34A853"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-400 mt-8 ">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="font-semibold cursor-pointer text-[#13c4a3] hover:underline"
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
   );
-}
+};
 
-const StyledWrapper = styled.div`
-  .form-container {
-    width: 320px;
-    border-radius: 0.75rem;
-    background-color: rgba(17, 24, 39, 1);
-    padding: 2rem;
-    color: rgba(243, 244, 246, 1);
-  }
-
-  .title {
-    text-align: center;
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 700;
-  }
-
-  .form {
-    margin-top: 1.5rem;
-  }
-
-  .input-group {
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-  }
-
-  .input-group label {
-    display: block;
-    color: rgba(156, 163, 175, 1);
-    margin-bottom: 4px;
-  }
-
-  .input-group input {
-    width: 100%;
-    border-radius: 0.375rem;
-    border: 1px solid rgba(55, 65, 81, 1);
-    outline: 0;
-    background-color: rgba(17, 24, 39, 1);
-    padding: 0.75rem 1rem;
-    color: rgba(243, 244, 246, 1);
-  }
-
-  .input-group input:focus {
-    border-color: rgba(167, 139, 250);
-  }
-
-  .forgot {
-    display: flex;
-    justify-content: flex-end;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: rgba(156, 163, 175,1);
-    margin: 8px 0 14px 0;
-  }
-
-  .forgot a,.signup a {
-    color: rgba(243, 244, 246, 1);
-    text-decoration: none;
-    font-size: 14px;
-  }
-
-  .forgot a:hover, .signup a:hover {
-    text-decoration: underline rgba(167, 139, 250, 1);
-  }
-
-  .sign {
-    display: block;
-    width: 100%;
-    background-color: rgba(167, 139, 250, 1);
-    padding: 0.75rem;
-    text-align: center;
-    color: rgba(17, 24, 39, 1);
-    border: none;
-    border-radius: 0.375rem;
-    font-weight: 600;
-  }
-
-  .social-message {
-    display: flex;
-    align-items: center;
-    padding-top: 1rem;
-  }
-
-  .line {
-    height: 1px;
-    flex: 1 1 0%;
-    background-color: rgba(55, 65, 81, 1);
-  }
-
-  .social-message .message {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: rgba(156, 163, 175, 1);
-  }
-
-  .social-icons {
-    display: flex;
-    justify-content: center;
-  }
-
-  .social-icons .icon {
-    border-radius: 0.125rem;
-    padding: 0.75rem;
-    border: none;
-    background-color: transparent;
-    margin-left: 8px;
-  }
-
-  .social-icons .icon svg {
-    height: 1.25rem;
-    width: 1.25rem;
-    fill: #fff;
-  }
-
-  .signup {
-    text-align: center;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: rgba(156, 163, 175, 1);
-  }`;
-
-export default Form;
+export default Login;

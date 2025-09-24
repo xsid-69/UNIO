@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import BottomNavbar from './BottomNavbar';
-import Profile from '../pages/Profile'; // Import Profile component
+import Profile from '../pages/Profile';
+import { useSelector } from 'react-redux';
 
 export default function Layout({ sidebar, rightPanel }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { token } = useSelector((state) => state.auth);
+  const isLoggedIn = !!token;
+  const navigate = useNavigate();
+
+  const handleSignInClick = () => {
+    navigate('/login');
+  };
 
   return (
     <div className="w-full h-screen">
@@ -50,7 +58,7 @@ export default function Layout({ sidebar, rightPanel }) {
           />
         )}
         {/* Main Section */}
-        <main className="p-10 md:w-[70vw]">
+        <main className="md:p-10 p-10  md:w-[70vw]">
           <Outlet />
         </main>
         {/* Profile Aside for desktop */}
@@ -58,7 +66,18 @@ export default function Layout({ sidebar, rightPanel }) {
           id="Profile"
           className="hidden md:flex flex-col items-center bg-[#222748]/10 backdrop-blur-md w-[22vw] p-8 text-white overflow-y-auto"
         >
-          <Profile />
+          {isLoggedIn ? (
+            <Profile />
+          ) : (
+            <div className="text-center">
+              <button
+                onClick={handleSignInClick}
+                className="bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors"
+              >
+                Sign in now
+              </button>
+            </div>
+          )}
         </aside>
         {/* Profile Circle for mobile */}
         <>
@@ -67,7 +86,7 @@ export default function Layout({ sidebar, rightPanel }) {
             onClick={() => setProfileOpen(true)}
             aria-label="Open profile panel"
           >
-            P
+            {isLoggedIn ? 'P' : 'Sign In'}
           </button>
           {/* Slide-in Profile panel for mobile */}
           {profileOpen && (
@@ -81,7 +100,18 @@ export default function Layout({ sidebar, rightPanel }) {
                 <span className="block w-5 h-0.5 bg-white -rotate-45"></span>
               </button>
               {/* Profile Content for mobile */}
-              <Profile />
+              {isLoggedIn ? (
+                <Profile />
+              ) : (
+                <div className="text-center">
+                  <button
+                    onClick={handleSignInClick}
+                    className="bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors"
+                  >
+                    Sign in now
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {/* Overlay for mobile profile panel */}
