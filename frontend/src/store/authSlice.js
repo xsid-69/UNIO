@@ -89,10 +89,10 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         localStorage.setItem('user', JSON.stringify(action.payload.user)); // Corrected typo
         localStorage.setItem('token', action.payload.token);
-        // Set Authorization header for subsequent requests
-        if (action.payload.token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-        }
+        // Removed manual setting of Authorization header, relying on httpOnly cookie
+        // if (action.payload.token) {
+        //   axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+        // }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -108,10 +108,10 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         localStorage.setItem('user', JSON.stringify(action.payload.user)); // Corrected typo
         localStorage.setItem('token', action.payload.token);
-        // Set Authorization header for subsequent requests
-        if (action.payload.token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-        }
+        // Removed manual setting of Authorization header, relying on httpOnly cookie
+        // if (action.payload.token) {
+        //   axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+        // }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

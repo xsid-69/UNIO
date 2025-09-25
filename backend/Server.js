@@ -1,6 +1,7 @@
 import './config/env.js';  // Import env config first
 import app from './src/app.js';
 import connectDB from './db/db.js';
+import "./config/passport.config.js";
 
 connectDB();
 app.listen(3000,()=>{

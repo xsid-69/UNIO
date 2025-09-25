@@ -31,12 +31,24 @@ async function registerController(req , res ) {
         profilePic: profilePicUrl
     })
     
-    const token = jwt.sign({id:user._id}, process.env.JWT_SECRET)
-    res.cookie("token" , token )
+    const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '7d' }); // Added expiresIn
+    // Set httpOnly cookie for authentication persistence
+    // In development, secure should be false. In production, it should be true.
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' // Use 'None' for production if secure is true, 'Lax' otherwise
+    };
+    // If not in production, explicitly set secure to false for development
+    if (process.env.NODE_ENV !== 'production') {
+        cookieOptions.secure = false;
+    }
+    res.cookie("token" , token , cookieOptions);
 
     return res.status(201).json({
         message:"User registered successfully",
-        user
+        user,
+        token // Include token in the response body
     })
 }
 
@@ -54,8 +66,8 @@ async function logincontroller(req , res){
             message:"Invalid password"
         })
     }
-    const token = jwt.sign({id:user._id} , process.env.JWT_SECRET)
-    res.cookie("token" , token )
+    const token = jwt.sign({id:user._id} , process.env.JWT_SECRET, { expiresIn: '7d' }); // Added expiresIn
+    res.cookie("token" , token , { httpOnly: true, secure: process.env.NODE_ENV === 'production' }); // Added httpOnly and secure
     return res.status(200).json({
         message: "Login successful",
         user,

@@ -3,12 +3,15 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../store/authSlice';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.auth);
+  const { login } = useAuth();
+
 
   const loginHandler = (data) => {
     dispatch(loginUser(data));
@@ -16,9 +19,12 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
+      // Assuming the user object contains the token
+      // If the token is nested, you might need to adjust this (e.g., user.token)
+      login(user.token || 'dummy-token'); // Use a dummy token if real one isn't available
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, login]);
 
   return (
     <div className="min-h-screen flex items-center justify-center  text-white p-4 relative overflow-hidden">
@@ -96,6 +102,7 @@ const Login = () => {
 
           <div className="mt-8">
             <button
+              onClick={() => window.open("http://localhost:3000/api/auth/google", "_self")}
               type="button"
               className="w-full py-3 rounded-lg font-semibold text-white bg-[#181f2a] border border-[#3a446e] flex items-center justify-center space-x-2 hover:bg-[#3a446e] transition-colors"
             >

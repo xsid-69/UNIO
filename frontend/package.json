@@ -19,6 +19,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "framer-motion": "^12.23.12",
+    "lucide-react": "^0.544.0",
     "motion": "^12.23.18",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

@@ -1,10 +1,20 @@
 import jwt from 'jsonwebtoken';
 import userModel from '../models/user.model.js'; // Assuming user.model.js is correctly imported
 
-async function authmiddleware (req , res , next){
-    const token = req.cookies.token;
+async function isAuthenticated (req , res , next){
+    let token;
+
+    // Check for token in Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    } else if (req.cookies.token) {
+        // Fallback to checking for token in cookies
+        token = req.cookies.token;
+    }
+
     if(!token){
-        return res.status(401).json({ // Changed to 401 for Unauthorized
+        return res.status(401).json({
             message: "Unauthorized, Login First"
         });
     }
@@ -20,10 +30,11 @@ async function authmiddleware (req , res , next){
       req.user = user;
       next();
     }catch(err){
+      console.error("JWT verification error:", err); // Log the error for debugging
       return res.status(401).json({
         message: "Invalid token, Login Again"
       });
     }
 }
 
-export default authmiddleware;
+export default isAuthenticated;

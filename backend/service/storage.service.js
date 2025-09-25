@@ -11,7 +11,7 @@ async function uploadImage(file, filename){
     const response = await imagekit.upload({
         file: file,
         fileName: filename,
-        folder: "social-media-images"
+        folder: "unio-profile-pics"
     })
     return response;
 }

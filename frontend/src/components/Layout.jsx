@@ -15,6 +15,7 @@ export default function Layout({ sidebar, rightPanel }) {
     navigate('/login');
   };
 
+
   return (
     <div className="w-full h-screen">
       {/* Hamburger for mobile */}

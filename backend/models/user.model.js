@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
     name:{
         type:String,
         unique:true,
-        required:true
+        
     },
     email:{
         type:String,
@@ -13,11 +13,27 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:true
+        
+    },
+    googleId:{
+        type:String,
+        
+    },
+    avatar:{
+        type:String,
+        
     },
     profilePic:{
         type:String,
         default: "" // Default empty string for profile picture
+    },
+    isLoggedIn:{
+        type:Boolean,
+        default:false
+    },
+    isAuthenticated:{
+        type:Boolean,
+        default:false
     }
 })
 

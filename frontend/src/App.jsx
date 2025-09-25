@@ -14,20 +14,20 @@ const App = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-
-    if (storedUser && storedToken) {
+    const initializeAuth = async () => {
       try {
-        const user = JSON.parse(storedUser);
-        dispatch(loadUser({ user, token: storedToken }));
+        const response = await axios.get('http://localhost:3000/api/auth/me');
+        if (response.data && response.data.user) {
+          dispatch(loadUser({ user: response.data.user, token: localStorage.getItem('token') }));
+        }
       } catch (error) {
-        console.error("Failed to parse user from localStorage:", error);
-        // Optionally clear invalid data
+        console.error("Failed to initialize auth state:", error);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
       }
-    }
+    };
+    
+    initializeAuth();
   }, [dispatch]);
 
   return (

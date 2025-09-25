@@ -16,6 +16,7 @@ import ProfileSettings from '../pages/settings/ProfileSettings';
 import { useAuth } from '../context/AuthContext';
 import Login from '../pages/Login'; // Assuming Login component is in ../pages/Login.jsx
 import Register from '../pages/Register';
+import AuthSucess from '../pages/AuthSucess'; // Import AuthSucess
 
 const PrivateRoute = ({ children }) => {
   const { isLoggedIn } = useAuth();
@@ -28,6 +29,7 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth-success" element={<AuthSucess />} /> {/* Add this route */}
         {/* The Layout component will wrap all routes */}
         <Route path="/" element={<Layout sidebar={<Sidebar />} />}>
           <Route index element={<Home />} />
