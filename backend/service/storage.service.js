@@ -16,4 +16,4 @@ async function uploadImage(file, filename){
     return response;
 }
 
-export default uploadImage;
+export { imagekit, uploadImage };

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../store/authSlice';
+import Spinner from '../components/Spinner';
 
 const Register = () => {
   const { register, handleSubmit } = useForm();
@@ -99,7 +100,11 @@ const Register = () => {
               className="w-full py-3 rounded-lg font-semibold text-white
                          bg-gradient-to-r from-[#13c4a3] to-[#5f72be] hover:from-[#10a080] hover:to-[#4e5a9a] transition-all duration-300 disabled:opacity-50"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? (
+                <span className="inline-flex items-center gap-2"><Spinner size={0.9} thickness={2} speed={700} />Creating Account...</span>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
           <div id='googleAuth' className="mt-8">

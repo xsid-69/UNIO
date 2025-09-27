@@ -9,17 +9,34 @@ passport.use(new GoogleStrategy({
   },
   async(accessToken, refreshToken, profile, cb)=> {
     try {
-       let user = await User.findOneAndUpdate({ googleId: profile.id } ); 
-       if(!user){
-          user = await User.create({
-            googleId: profile.id,  
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            isLoggedIn:true,
-            isAuthenticated:true // Save to profilePic instead of avatar
-          })
-       }
-       return cb(null, user);
+      // Try to find existing user by googleId
+      let user = await User.findOne({ googleId: profile.id });
+      const avatarUrl = (profile.photos && profile.photos[0] && profile.photos[0].value) || (profile._json && profile._json.picture) || '';
+      const email = (profile.emails && profile.emails[0] && profile.emails[0].value) || '';
+
+      if (!user) {
+        user = await User.create({
+          googleId: profile.id,
+          name: profile.displayName,
+          email: email,
+          avatar: avatarUrl,
+          isLoggedIn: true,
+          isAuthenticated: true
+        });
+      } else {
+        // Update avatar/email if changed
+        let changed = false;
+        if (avatarUrl && user.avatar !== avatarUrl) {
+          user.avatar = avatarUrl;
+          changed = true;
+        }
+        if (email && user.email !== email) {
+          user.email = email;
+          changed = true;
+        }
+        if (changed) await user.save();
+      }
+      return cb(null, user);
     } catch (error) {
         return cb(error, null);
     }

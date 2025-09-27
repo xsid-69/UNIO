@@ -20,12 +20,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (token) => {
-    localStorage.setItem('token', token); // Store the token
+    // Do not store token in localStorage for httpOnly cookie-based auth flows.
+    // Just update in-memory logged-in state; the cookie manages server-side auth.
     setIsLoggedIn(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('token'); // Remove the token
+    // Clear any local flags and rely on backend logout (if implemented) to clear cookie.
     setIsLoggedIn(false);
   };
 

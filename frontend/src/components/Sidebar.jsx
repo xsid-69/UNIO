@@ -5,10 +5,11 @@ import { LuTrainFront } from "react-icons/lu";
 import { IoSettingsSharp } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 
 const Sidebar = () => {
-  const { isLoggedIn } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const isLoggedIn = !!user;
 
   return (
     <div className="flex flex-col items-center py-3 gap-8">

@@ -6,6 +6,7 @@ import { IoNewspaperOutline } from "react-icons/io5";
 import { GrNotes } from "react-icons/gr";
 import { BsRobot } from "react-icons/bs";
 import { FaBookOpen, FaRoad } from "react-icons/fa";
+import { useSelector } from 'react-redux';
 
 // Placeholder components for other tabs
 const LearningContent = () => <div className='text-center md:mr-[20vw]'>Learning Content</div>;
@@ -13,11 +14,12 @@ const ResourcesContent = () => <div className='text-center md:mr-[20vw]'>Resourc
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('Trending'); // Default active tab
+  const { user } = useSelector((state) => state.auth);
   return (
     <>
       {/* Welcome Block */}
       <div className="mt-5 md:mb-8 ">
-        <h1 className="text-3xl font-bold">Hello, xSid</h1>
+        <h1 className="text-3xl font-bold">Hello, {user?.name}</h1>
         <p className="text-gray-400">Welcome back to unio</p>
       </div>
 

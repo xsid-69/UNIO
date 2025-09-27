@@ -7,8 +7,8 @@ import { useSelector } from 'react-redux';
 export default function Layout({ sidebar, rightPanel }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { token } = useSelector((state) => state.auth);
-  const isLoggedIn = !!token;
+  const { user } = useSelector((state) => state.auth);
+  const isLoggedIn = !!user;
   const navigate = useNavigate();
 
   const handleSignInClick = () => {

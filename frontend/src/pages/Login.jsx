@@ -3,14 +3,15 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../store/authSlice';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
+import Spinner from '../components/Spinner';
+// useAuth removed; rely on Redux user state
 
 const Login = () => {
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.auth);
-  const { login } = useAuth();
 
 
   const loginHandler = (data) => {
@@ -19,12 +20,9 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      // Assuming the user object contains the token
-      // If the token is nested, you might need to adjust this (e.g., user.token)
-      login(user.token || 'dummy-token'); // Use a dummy token if real one isn't available
       navigate('/');
     }
-  }, [user, navigate, login]);
+  }, [user, navigate, Login]);
 
   return (
     <div className="min-h-screen flex items-center justify-center  text-white p-4 relative overflow-hidden">
@@ -56,9 +54,9 @@ const Login = () => {
           <p className="text-lg text-gray-300 mb-8 max-w-md mx-auto lg:mx-0">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
-          <button className="bg-[#13c4a3] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#10a080] transition-colors">
+          <Link to={'/'} className="bg-[#13c4a3] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#10a080] transition-colors">
             Learn More
-          </button>
+          </Link>
         </div>
 
         {/* Right Section: Sign In Form */}
@@ -94,9 +92,16 @@ const Login = () => {
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-lg font-semibold text-white
-                         bg-gradient-to-r from-[#ff7e5f] to-[#feb47b] hover:from-[#fe6b4e] hover:to-[#fd9e5e] transition-all duration-300 disabled:opacity-50"
+                         bg-gradient-to-r from-[#ff7e5f] to-[#feb47b] hover:from-[#fe6b4e] hover:to-[#fd9e5e] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <span className="inline-flex items-center"><Spinner size={0.9} thickness={2} speed={700} /></span>
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 

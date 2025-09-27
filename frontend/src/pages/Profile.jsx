@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import ProfileImage from '../components/ProfileImage';
 
+
+
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
 
@@ -21,6 +23,10 @@ const Profile = () => {
         <p id='info' className="text-gray-400 text-xs flex items-center justify-center gap-1 mb-1">
           {user?.email || 'user@example.com'}
         </p>
+        <div>
+          <span>{user?.year} year </span>
+          <span>{user?.sem} Semester</span>
+        </div>
         </Link>
         
       </div>

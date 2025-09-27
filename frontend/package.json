@@ -28,6 +28,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.8.1",
     "react-toastify": "^11.0.5",
+    "react-pdf": "^9.0.0",
     "styled-components": "^6.1.19",
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.1",

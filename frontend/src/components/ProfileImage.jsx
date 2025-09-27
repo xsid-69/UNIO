@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
+import Spinner from './Spinner';
 
 const ProfileImage = ({ src, className = "", size = "md" }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  // If there's no src, we should not show the spinner — show fallback icon directly
+  const [isLoading, setIsLoading] = useState(!!src);
   const [error, setError] = useState(false);
 
   const sizeClasses = {
@@ -21,11 +23,18 @@ const ProfileImage = ({ src, className = "", size = "md" }) => {
     setError(true);
   };
 
+  useEffect(() => {
+    // Reset loading/error when src changes
+    setError(false);
+    setIsLoading(!!src);
+  }, [src]);
+
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
       {/* Default avatar shown while loading or on error */}
       <div className={`absolute inset-0 flex items-center justify-center bg-gray-700 rounded-full ${!isLoading && !error ? 'hidden' : ''}`}>
-        <User className="w-1/2 h-1/2 text-gray-400" />
+        {/* Show spinner only when loading an actual src; otherwise show fallback icon */}
+        {isLoading ? <Spinner size={1.6} subtle /> : <User className="w-1/2 h-1/2 text-gray-400" />}
       </div>
       
       {/* Actual image */}

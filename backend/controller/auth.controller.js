@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import userModel from '../models/user.model.js';
-import uploadImage from '../service/storage.service.js'; // Import ImageKit upload service
+import { uploadImage } from '../service/storage.service.js'; // Import ImageKit upload service
 
 
 async function registerController(req , res ) {
@@ -105,4 +105,54 @@ async function uploadProfilePicController(req, res) {
     }
 }
 
-export { registerController, logincontroller, uploadProfilePicController };
+// New controller function to update user profile details
+async function updateProfileController(req, res) {
+    try {
+        const user = req.user; // User is available from authmiddleware
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const { name, email, year, sem, branch } = req.body;
+
+        // Update user fields
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (year) user.year = year;
+        if (sem) user.sem = sem;
+        if (branch) user.branch = branch;
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Profile updated successfully!",
+            user: user // Return the updated user object
+        });
+
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: "Failed to update profile." });
+    }
+}
+
+// New controller to clear auth cookie on logout
+async function logoutController(req, res) {
+    try {
+        // Clear the token cookie; set sameSite and secure similarly to how it was set
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+        };
+        if (process.env.NODE_ENV !== 'production') cookieOptions.secure = false;
+
+        res.clearCookie('token', cookieOptions);
+        return res.status(200).json({ message: 'Logged out' });
+    } catch (error) {
+        console.error('Error during logout:', error);
+        return res.status(500).json({ message: 'Failed to logout' });
+    }
+}
+
+
+export { registerController, logincontroller, uploadProfilePicController, updateProfileController, logoutController };

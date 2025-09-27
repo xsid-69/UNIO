@@ -13,13 +13,15 @@ import SolvedQPage from '../pages/resources/SolvedQues/SolvedQPage';
 import SyllabusPage from './../pages/resources/Syllabus/SyllabusPage';
 import PyqsPage from '../pages/resources/PYQS/PyqsPage';
 import ProfileSettings from '../pages/settings/ProfileSettings';
-import { useAuth } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 import Login from '../pages/Login'; // Assuming Login component is in ../pages/Login.jsx
 import Register from '../pages/Register';
 import AuthSucess from '../pages/AuthSucess'; // Import AuthSucess
+import ProfileData from '../pages/settings/ProfileData';
 
 const PrivateRoute = ({ children }) => {
-  const { isLoggedIn } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const isLoggedIn = !!user;
   return isLoggedIn ? children : <Navigate to="/login" />;
 };
 
@@ -42,6 +44,7 @@ const AppRoutes = () => {
           <Route path="pyqspage" element={<PyqsPage/>}/>
           <Route path="solvedqpage" element={<SolvedQPage/>}/>
           <Route path="syllabus" element={<SyllabusPage/>}/>
+          <Route path="profiledata" element={<ProfileData/>}/>
           <Route path="profilesettings" element={<PrivateRoute><ProfileSettings/></PrivateRoute>}/>
         </Route>
       </Routes>

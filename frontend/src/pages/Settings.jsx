@@ -3,26 +3,34 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronLeft, ChevronRight, User, Bell, Moon, Lock, FileText, HelpCircle, LogOut } from 'lucide-react';
 import ProfileImage from '../components/ProfileImage';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import { logoutUser } from '../store/authSlice';
-import { useAuth } from '../context/AuthContext';
 
 const Settings = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { logout } = useAuth();
 
   const handleGoBack = () => {
     navigate(-1);
   };
-    const handleLogout = () => {
+    const handleLogout = async () => {
+      try {
+        // Inform server to clear httpOnly cookie
+        await axios.post('http://localhost:3000/api/auth/logout');
+        toast.success('Logged out');
+      } catch (err) {
+        console.warn('Server logout failed, continuing with client-side logout', err);
+        toast.warn('Server logout failed, continuing with local logout');
+      }
       dispatch(logoutUser());
-      logout();
       navigate('/login');
     };
     
   return (
-    <div className="min-h-screen rounded-2xl bg-gray-900 text-white p-4">
+    // Added styles to hide scrollbar for different browsers using Tailwind arbitrary values
+    <div className="h-[90vh] overflow-y-auto scrollbar-hide rounded-2xl bg-gray-900 text-white p-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex items-center justify-between mb-6">
         <Link to="#" onClick={handleGoBack} className="text-gray-400">
           <ChevronLeft size={24} />
@@ -32,16 +40,16 @@ const Settings = () => {
       </div>
 
       {/* Profile Section */}
-      <div className="bg-gray-800 rounded-xl p-4 mb-6 flex items-center justify-between">
+      <Link to={'/profiledata'} className="bg-gray-800 rounded-xl p-4 mb-6 flex items-center justify-between">
         <div className="flex items-center">
           <ProfileImage src={user?.profilePic || user?.avatar} size="sm" className="mr-3" />
           <div>
             <p className="font-medium">{user?.name || 'User Name'}</p>
-            <p className="text-sm text-gray-400">Branch</p>
+            <p className="text-sm text-gray-400">{user?.branch}</p>
           </div>
         </div>
         <ChevronRight size={20} className="text-gray-400" />
-      </div>
+      </Link>
 
       {/* Other Settings Section */}
       <p className="text-gray-400 text-sm mb-3">Other settings</p>

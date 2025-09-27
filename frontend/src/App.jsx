@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './components/Sidebar';
 import { GridBeams } from './components/magicui/grid-beams';
@@ -22,12 +23,14 @@ const App = () => {
         }
       } catch (error) {
         console.error("Failed to initialize auth state:", error);
+        // show a non-intrusive toast so user knows something failed silently
+        
         localStorage.removeItem('user');
         localStorage.removeItem('token');
       }
     };
     
-    initializeAuth();
+  initializeAuth();
   }, [dispatch]);
 
   return (
@@ -35,6 +38,25 @@ const App = () => {
       <GridBeams className="absolute inset-0 z-0" />
       <div className="relative z-10">
         <AppRoutes sidebar={<Sidebar/>} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3500}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+          toastClassName={(toastProps) => {
+            const base = 'custom-toast';
+            const typeClass = toastProps?.type ? ` ${base}--${toastProps.type}` : '';
+            return base + typeClass;
+          }}
+          bodyClassName="custom-toast-body"
+          progressClassName="custom-toast-progress"
+        />
       </div>
     </div>
   )

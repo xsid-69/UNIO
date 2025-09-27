@@ -4,7 +4,8 @@ import { registerController } from '../controller/auth.controller.js';
 import { logincontroller } from '../controller/auth.controller.js';
 import authmiddleware from '../middlewares/auth.middleware.js'; // Import the new middleware
 import upload from '../middlewares/multerConfig.js'; // Import multer config
-import { uploadProfilePicController } from '../controller/auth.controller.js'; // Import new controller
+import { uploadProfilePicController } from '../controller/auth.controller.js';
+import { updateProfileController, logoutController } from '../controller/auth.controller.js'; // Import new controller
 
 const router = Router();
 
@@ -12,6 +13,11 @@ router.post('/register', upload.single('profilePic'), registerController);
 router.post('/login',logincontroller);
 
 router.post('/profile/upload', authmiddleware, upload.single('profilePic'), uploadProfilePicController);
+// Route to update user profile
+router.put('/updateProfile', authmiddleware, updateProfileController);
+
+// Logout route clears the httpOnly cookie
+router.post('/logout', logoutController);
 
 // Example of a protected route - you can add more as needed
 router.get('/profile', authmiddleware, (req, res) => {

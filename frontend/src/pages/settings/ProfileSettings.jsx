@@ -2,16 +2,29 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { logoutUser } from '../../store/authSlice';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import { ChevronLeft } from 'lucide-react';
+
 
 const ProfileSettings = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    dispatch(logoutUser());
-    navigate('/login');
+    const doLogout = async () => {
+      try {
+        await axios.post('http://localhost:3000/api/auth/logout');
+        toast.success('Logged out');
+      } catch (err) {
+        console.warn('Server logout failed, continuing with client-side logout', err);
+        toast.warn('Server logout failed, continuing with local logout');
+      }
+      dispatch(logoutUser());
+      navigate('/login');
+    };
+    doLogout();
   };
 
   const handleGoBack = () => {
@@ -33,38 +46,18 @@ const ProfileSettings = () => {
         <div className="flex flex-col items-center mb-8">
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-600 mb-4">
             <img
-              src={user?.profilePic || `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random&color=fff&size=128`}
+              src= {user?.profilePic || user?.avatar || `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random&color=fff&size=128`}
               alt="Profile"
               className="w-full h-full object-cover"
             />
           </div>
           <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 items-center">
-            <button id="chooseFileButton" className="w-full md:w-auto flex items-center justify-center px-5 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors text-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Change Image
-            </button>
-            <button className="w-full md:w-auto px-5 py-2 border border-gray-600 text-gray-200 rounded-md hover:bg-red-500 transition-colors text-sm">
-              Remove Image
-            </button>
+            
+            
             <button id='logout' onClick={handleLogout} className='w-full md:w-auto px-5 py-2 border border-gray-600 text-gray-200 rounded-md hover:bg-red-500 transition-colors text-sm'>Logout</button>
           </div>
         </div>
-        <p className="text-sm text-gray-400 mb-10 text-center">
-          We support PNGs, JPEGs and GIFs under 2MB
-        </p>
+       
 
       {/* Name Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 w-full">
