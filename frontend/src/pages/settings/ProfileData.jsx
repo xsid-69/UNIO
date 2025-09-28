@@ -41,8 +41,8 @@ const ProfileData = () => {
   const prefillLastName = user?.name?.split(' ')[1] || '';
   const prefillEmail = user?.email || '';
   const prefillBranch = user?.branch || '';
-  const prefillYears = user?.years || ''; // Pre-fill years
-  const prefillSemesters = user?.semesters || ''; // Pre-fill semesters
+  const prefillYears = user?.year || ''; // Pre-fill years
+  const prefillSemesters = user?.semester || ''; // Pre-fill semesters
 
   // Initialize state with pre-filled values from initial user data
   // This useEffect ensures that the form fields are populated when the component mounts
@@ -82,7 +82,7 @@ const ProfileData = () => {
       email: email,
       branch: selectedBranch,
       year: selectedYears,
-      sem: selectedSemesters,
+      semester: selectedSemesters, // Corrected from 'sem' to 'semester'
       // Add other fields as needed, e.g., DOB, gender, profilePic etc.
     };
 
@@ -131,7 +131,7 @@ const ProfileData = () => {
   
   const branches =[
   "Computer Science and Engineering",
-  "Artificial Intelligence and Machine Learning",
+  "Artificial Intelligence & Machine Learning",
   "Artificial Intelligence",
   "Computer Science and Engineering (Data Science)",
   "Computer Science and Engineering (Cyber Security)",

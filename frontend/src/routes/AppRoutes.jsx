@@ -12,6 +12,7 @@ import NotesPage from '../pages/resources/notes/NotesPage';
 import SolvedQPage from '../pages/resources/SolvedQues/SolvedQPage';
 import SyllabusPage from './../pages/resources/Syllabus/SyllabusPage';
 import PyqsPage from '../pages/resources/PYQS/PyqsPage';
+import SubjectsPage from '../pages/SubjectsPage';
 import ProfileSettings from '../pages/settings/ProfileSettings';
 import { useSelector } from 'react-redux';
 import Login from '../pages/Login'; // Assuming Login component is in ../pages/Login.jsx
@@ -46,6 +47,7 @@ const AppRoutes = () => {
           <Route path="syllabus" element={<SyllabusPage/>}/>
           <Route path="profiledata" element={<ProfileData/>}/>
           <Route path="profilesettings" element={<PrivateRoute><ProfileSettings/></PrivateRoute>}/>
+          <Route path="subjects" element={<SubjectsPage />} />
         </Route>
       </Routes>
     </Router>

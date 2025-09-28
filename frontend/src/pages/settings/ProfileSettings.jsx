@@ -31,7 +31,7 @@ const ProfileSettings = () => {
     navigate(-1);
   };
 
-   const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   return (
     <div className="min-h-[93vh] md:w-[65vw] w-[82vw] rounded-2xl md:mr-0 mr-10  bg-gray-900 p-4 md:p-8 text-gray-200  flex flex-col items-center"> {/* Applied centering, width, min-height, and flexbox for centering */}
       <div className="max-w-2xl overflow-y-auto scrollbar-hide h-[80vh]"> {/* Added overflow-y-auto, scrollbar-hide, and h-[80vh] for PC scrollability */}

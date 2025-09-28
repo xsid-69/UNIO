@@ -23,9 +23,10 @@ const Profile = () => {
         <p id='info' className="text-gray-400 text-xs flex items-center justify-center gap-1 mb-1">
           {user?.email || 'user@example.com'}
         </p>
+        <p>{user?.branch}</p>
         <div>
           <span>{user?.year} year </span>
-          <span>{user?.sem} Semester</span>
+          <span>{user?.semester} Semester</span>
         </div>
         </Link>
         

@@ -113,13 +113,13 @@ async function updateProfileController(req, res) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        const { name, email, year, sem, branch } = req.body;
+        const { name, email, year, semester, branch } = req.body;
 
         // Update user fields
         if (name) user.name = name;
         if (email) user.email = email;
         if (year) user.year = year;
-        if (sem) user.sem = sem;
+        if (semester) user.semester = semester;
         if (branch) user.branch = branch;
 
         await user.save();

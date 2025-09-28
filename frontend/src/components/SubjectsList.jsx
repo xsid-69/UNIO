@@ -20,23 +20,8 @@ const AnimatedItem = ({ children, delay = 0, index }) => {
 };
 
 const SubjectsList = ({
-  items = [
-    { name: 'Item 1' },
-    { name: 'Item 2' },
-    { name: 'Item 3' },
-    { name: 'Item 4' },
-    { name: 'Item 5' },
-    { name: 'Item 6' },
-    { name: 'Item 7' },
-    { name: 'Item 8' },
-    { name: 'Item 9' },
-    { name: 'Item 10' },
-    { name: 'Item 11' },
-    { name: 'Item 12' },
-    { name: 'Item 13' },
-    { name: 'Item 14' },
-    { name: 'Item 15' }
-  ],
+  branch,
+  semester,
   onItemSelect,
   showGradients = true,
   enableArrowNavigation = true,
@@ -46,10 +31,46 @@ const SubjectsList = ({
   initialSelectedIndex = -1
 }) => {
   const listRef = useRef(null);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
   const [keyboardNav, setKeyboardNav] = useState(false);
   const [topGradientOpacity, setTopGradientOpacity] = useState(0);
   const [bottomGradientOpacity, setBottomGradientOpacity] = useState(1);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (!branch || !semester) {
+        setSubjects([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`http://localhost:3000/api/subjects?branch=${branch}&semester=${semester}`);
+        if (!response.ok) {
+          // Log the response status and text for debugging
+          const errorText = await response.text();
+          console.error("Error fetching subjects:", `HTTP error! status: ${response.status}`, errorText);
+          throw new Error(`HTTP error! status: ${response.status}. See console for details.`);
+        }
+        const data = await response.json();
+        setSubjects(data);
+      } catch (e) {
+        // If the error is already logged above, just set the message
+        if (!e.message.includes("HTTP error!")) {
+          console.error("Error fetching subjects:", e);
+        }
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubjects();
+  }, [branch, semester]);
 
   const handleScroll = e => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -64,16 +85,16 @@ const SubjectsList = ({
       if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
         e.preventDefault();
         setKeyboardNav(true);
-        setSelectedIndex(prev => Math.min(prev + 1, items.length - 1));
+        setSelectedIndex(prev => Math.min(prev + 1, subjects.length - 1));
       } else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
         e.preventDefault();
         setKeyboardNav(true);
         setSelectedIndex(prev => Math.max(prev - 1, 0));
       } else if (e.key === 'Enter') {
-        if (selectedIndex >= 0 && selectedIndex < items.length) {
+        if (selectedIndex >= 0 && selectedIndex < subjects.length) {
           e.preventDefault();
           if (onItemSelect) {
-            onItemSelect(items[selectedIndex], selectedIndex);
+            onItemSelect(subjects[selectedIndex], selectedIndex);
           }
         }
       }
@@ -81,7 +102,7 @@ const SubjectsList = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [items, selectedIndex, onItemSelect, enableArrowNavigation]);
+  }, [subjects, selectedIndex, onItemSelect, enableArrowNavigation]);
 
   useEffect(() => {
     if (!keyboardNav || selectedIndex < 0 || !listRef.current) return;
@@ -105,6 +126,18 @@ const SubjectsList = ({
     setKeyboardNav(false);
   }, [selectedIndex, keyboardNav]);
 
+  if (loading) {
+    return <div className="text-white">Loading subjects...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (subjects.length === 0) {
+    return <div className="text-white">No subjects found for the selected branch and semester.</div>;
+  }
+
   return (
     <div className={`relative md:w-[65vw] ${className}`}>
       <div
@@ -120,7 +153,7 @@ const SubjectsList = ({
           scrollbarColor: '#222 #060010'
         }}
       >
-        {items.map((item, index) => (
+        {subjects.map((item, index) => (
           <AnimatedItem key={index} delay={0.1} index={index}>
             {item.to ? (
               <Link to={item.to} className="no-underline block">

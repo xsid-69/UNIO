@@ -1,34 +1,35 @@
 import React from 'react';
-import SubjectsList from  '../../../components/SubjectsList';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-
-const items = [ 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7']
+import UserSubjectsDisplay from '../../../components/UserSubjectsDisplay'; // Import the reusable component
+import { useSelector } from 'react-redux'; // Import useSelector
 
 const SolvedQPage = () => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth); // Get user from Redux
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
   return (
-    <div className='text-center mt-2 text-4xl h-100'>
+    <div className='p-2 h-[90vh] overflow-y-auto scrollbar-hide '>
       <div className="flex items-center justify-start mb-6">
         <Link to="#" onClick={handleGoBack} className="text-gray-400">
           <ChevronLeft size={24} />
         </Link>
-        <h1 className='ml-4'>Solved Questions of University </h1>
+        <h1 className='ml-4 text-2xl font-semibold'>Solved Questions</h1>
       </div>
-        <div id="subjectLists">
-           <SubjectsList
-              items={items}
-              onItemSelect={(item, index) => console.log(item, index)}
-              showGradients={false}
-              enableArrowNavigation={true}
-              displayScrollbar={false}
-           />
-        </div>
+
+      {/* Display Subjects */}
+      <div className="mb-6">
+        <UserSubjectsDisplay user={user} />
+      </div>
+
+      {/* Placeholder for Solved Questions content */}
+      <div className="text-white">
+        <p>Solved Questions content will be displayed here.</p>
+      </div>
     </div>
   );
 }

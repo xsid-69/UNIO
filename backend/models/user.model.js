@@ -30,14 +30,15 @@ const userSchema = new mongoose.Schema({
     year: { // Added year field
         type: String,
     },
-    sem: { // Added semester field
+
+    semester: { // Renamed from sem to semester
         type: String,
     },
     branch: { // Added branch field
         type: String,
     },
     role: { // Existing role field for compatibility
-        type: String,
+        type: String, 
         enum: ['user', 'admin'], // Possible roles
         default: 'user' // Default role is 'user'
     },
