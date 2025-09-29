@@ -99,17 +99,29 @@ export async function createNote(req, res) {
 // POST /api/notes/upload - upload PDF to ImageKit (admin only)
 export async function uploadPdfToImageKit(req, res) {
   try {
+    console.log('Upload request received');
+    console.log('Request file:', req.file);
+
     // Multer will handle file parsing and attach it to req.file
     // The 'upload.single('pdf')' middleware should be applied before this controller
     // 'pdf' is the name of the form field for the file upload
 
     if (!req.file) {
+      console.log('No file in request');
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    const { originalname, buffer } = req.file;
+    const { originalname, buffer, size, mimetype } = req.file;
+    console.log('File details:', { originalname, size, mimetype });
+
+    if (!buffer || buffer.length === 0) {
+      console.log('Empty file buffer');
+      return res.status(400).json({ success: false, message: 'Empty file' });
+    }
+
     const fileExtension = originalname.split('.').pop();
     const filename = `notes/${Date.now()}.${fileExtension}`; // Unique filename for ImageKit
+    console.log('Uploading to ImageKit:', filename);
 
     // Upload to ImageKit
     const imageKitResponse = await imagekit.upload({
@@ -119,8 +131,10 @@ export async function uploadPdfToImageKit(req, res) {
       // You can add other options like tags, customCoordinates, etc. if needed
     });
 
+    console.log('ImageKit response:', imageKitResponse);
+
     // The response contains url, filePath, etc.
-    const pdfUrl = imagekitResponse.url;
+    const pdfUrl = imageKitResponse.url;
     const imageKitFilePath = imageKitResponse.filePath; // This is useful for the proxyPdf endpoint
 
     // Here, we are just returning the URL.
@@ -139,8 +153,13 @@ export async function uploadPdfToImageKit(req, res) {
     });
 
   } catch (err) {
-    console.error('uploadPdfToImageKit error', err && err.stack ? err.stack : err);
-    res.status(500).json({ success: false, message: 'Failed to upload PDF to ImageKit' });
+    console.error('uploadPdfToImageKit error:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload PDF to ImageKit',
+      error: err.message
+    });
   }
 }
 

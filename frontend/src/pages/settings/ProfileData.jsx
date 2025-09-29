@@ -133,7 +133,7 @@ const ProfileData = () => {
   "Computer Science and Engineering",
   "Artificial Intelligence & Machine Learning",
   "Artificial Intelligence",
-  "Computer Science and Engineering (Data Science)",
+  "Computer Science Engineering Data Science",
   "Computer Science and Engineering (Cyber Security)",
   "Chemical Engineering",
   "Mechanical Engineering",

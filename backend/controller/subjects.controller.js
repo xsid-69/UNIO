@@ -6,9 +6,11 @@ export const getSubjects = async (req, res) => {
         if (!branch || !semester) {
             return res.status(400).json({ message: "Branch and semester are required" });
         }
-        
-       
-        const subjects = await subjectModel.find({ branch: branch, semester: Number(semester) });
+        // Perform a case-insensitive search for the branch
+        const subjects = await subjectModel.find({ 
+            branch: { $regex: new RegExp(`^${branch}$`, 'i') }, 
+            semester: Number(semester) 
+        });
         
         res.status(200).json(subjects);
     } catch (error) { 

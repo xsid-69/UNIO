@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Loader from './components/Loader';
 import AppRoutes from './routes/AppRoutes';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -13,6 +14,7 @@ axios.defaults.withCredentials = true;
 
 const App = () => {
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -27,11 +29,24 @@ const App = () => {
         
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+      } finally {
+        // Add a delay before setting isLoading to false
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000); // 2-second delay
       }
     };
     
   initializeAuth();
   }, [dispatch]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent dark">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className={`relative bg-transparent dark`}>

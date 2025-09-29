@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const UserSubjectsDisplay = ({ user }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate();
   const userBranch = user?.branch?.trim() || '';
   const userSemester = user?.semester?.toString() || '';
 
@@ -57,12 +58,18 @@ const UserSubjectsDisplay = ({ user }) => {
   if (subjects.length === 0) {
     return <div className="text-white">No subjects found for {userBranch} - Semester {userSemester}.</div>;
   }
+   
+  const handleClick = (subject) => {
+    console.log(`Subject clicked: ${subject.name}`);
+    navigate(`/subjects/${subject._id}`);
+
+  };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 ">
       {subjects.map((subject) => (
-        <div key={subject._id} className="p-4 bg-gray-800 rounded-lg shadow-md text-white">
-          <p className="text-lg font-semibold">{subject.name}</p>
+        <div key={subject._id} onClick={() => handleClick(subject)} className="p-4 bg-gray-800 rounded-lg shadow-md text-white">
+          <p className="text-lg cursor-pointer font-semibold">{subject.name}</p>
         </div>
       ))}
     </div>

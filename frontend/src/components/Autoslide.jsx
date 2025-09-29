@@ -21,8 +21,8 @@ export default function App() {
         modules={[Autoplay,EffectFade]}
         className="mySwiper text-black rounded-3xl w-full "
       >
-        <SwiperSlide className='object-fill'><img src="https://i.pinimg.com/1200x/13/19/f4/1319f4d3f391acacc992ff9392f35c14.jpg" alt="" /></SwiperSlide>
-        <SwiperSlide><img src="https://i.pinimg.com/1200x/50/29/bd/5029bd8c92916b025e032be0134572d7.jpg" alt="" /></SwiperSlide>
+        <SwiperSlide className='object-cover'><img src="https://i.pinimg.com/1200x/13/19/f4/1319f4d3f391acacc992ff9392f35c14.jpg" alt="" /></SwiperSlide>
+        <SwiperSlide><img src="https://i.pinimg.com/1200x/f8/99/42/f89942435304b1cc5d60b0031883b4b4.jpg" alt="" /></SwiperSlide>
         <SwiperSlide><img src="https://i.pinimg.com/1200x/50/29/bd/5029bd8c92916b025e032be0134572d7.jpg" alt="" /></SwiperSlide>
         <SwiperSlide><img src="https://i.pinimg.com/1200x/78/30/1d/78301d0de37bc222369e665c3c5c59fa.jpg" alt="" /></SwiperSlide>
         

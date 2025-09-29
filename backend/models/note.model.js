@@ -7,8 +7,7 @@ const NoteSchema = new mongoose.Schema({
   semester: { type: String, index: true },
   branch: { type: String, index: true },
   pdfUrl: { type: String, required: false, default: '' }, // URL to the PDF (ImageKit or external)
-  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdAt: { type: Date, default: Date.now },
+
 }, { collection: 'notes' });
 
 const Note = mongoose.model('Note', NoteSchema);
