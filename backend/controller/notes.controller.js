@@ -41,6 +41,30 @@ export async function getNote(req, res) {
   }
 }
 
+// GET /api/notes/subject/:subjectName - get notes by subject name
+export async function getNotesBySubject(req, res) {
+  try {
+    const { subjectName } = req.params;
+    const { branch, semester } = req.query;
+
+    const query = { subject: { $regex: new RegExp(`^${subjectName}$`, 'i') } };
+
+    if (branch) query.branch = branch;
+    if (semester) query.semester = semester;
+
+    const notes = await Note.find(query).sort({ createdAt: -1 });
+
+    if (!notes || notes.length === 0) {
+      return res.status(404).json({ success: false, message: 'No notes found for this subject' });
+    }
+
+    return res.json({ success: true, notes });
+  } catch (err) {
+    console.error('getNotesBySubject error', err && err.stack ? err.stack : err);
+    return res.status(500).json({ success: false, message: 'Failed to get notes for subject' });
+  }
+}
+
 // Proxy a PDF URL (either ImageKit path or external url) similar to syllabus proxy
 export async function proxyPdf(req, res) {
   try {

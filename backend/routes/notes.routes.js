@@ -5,6 +5,7 @@ import upload from '../middlewares/multerConfig.js';
 import {
   listNotes,
   getNote,
+  getNotesBySubject,
   proxyPdf,
   createNote, // New controller function for saving notes
   uploadPdfToImageKit // New controller function for uploading PDFs
@@ -12,12 +13,14 @@ import {
 
 const router = express.Router();
 
-// GET /api/notes - list notes with optional filters (protected)
-router.get('/', isAuthenticated, listNotes);
-// GET /api/notes/file?filePath=.. or ?url=.. -> proxies the PDF bytes (protected)
-router.get('/file', isAuthenticated, proxyPdf);
-// GET /api/notes/:id - single note (protected)
-router.get('/:id', isAuthenticated, getNote);
+// GET /api/notes - list notes with optional filters (public for testing)
+router.get('/', listNotes);
+// GET /api/notes/file?filePath=.. or ?url=.. -> proxies the PDF bytes (public for testing)
+router.get('/file', proxyPdf);
+// GET /api/notes/:id - single note (public for testing)
+router.get('/:id', getNote);
+// GET /api/notes/subject/:subjectName - get notes by subject name (public for testing)
+router.get('/subject/:subjectName', getNotesBySubject);
 
 // POST /api/notes - create a new note (admin only)
 router.post('/', isAuthenticated, isAdmin, createNote);

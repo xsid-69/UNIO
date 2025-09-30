@@ -9,8 +9,10 @@ import { useDispatch } from 'react-redux';
 import { loadUser } from './store/authSlice';
 import axios from 'axios'; // Import axios
 
+
 // Configure axios to send credentials (cookies)
 axios.defaults.withCredentials = true;
+
 
 const App = () => {
   const dispatch = useDispatch();

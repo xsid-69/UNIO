@@ -2,6 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import ProfileImage from '../components/ProfileImage';
+import isAdmin from './../../../backend/middlewares/admin.middleware';
 
 
 
@@ -10,7 +11,13 @@ const Profile = () => {
 
   return (
     <div className='flex w-full h-screen items-start'>
-      <div id='Profile' className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-xs w-full text-center">
+      <div id='Profile' className="bg-gray-900 flex items-center flex-col  p-6 rounded-lg shadow-lg max-w-xs w-full text-center">
+        {user?.isAdmin ? 
+        <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+          Admin
+        </div> 
+        : null  
+      }
         <Link to={"/profilesettings"} >
            <div className="relative w-full h-16 my-2">
           <ProfileImage 

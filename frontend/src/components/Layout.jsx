@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import BottomNavbar from './BottomNavbar';
 import Profile from '../pages/Profile';
-import { useSelector } from 'react-redux';
+import { useSelector } from 'react-redux'; 
 import axios from 'axios';
 
 export default function Layout({ sidebar, rightPanel }) {
@@ -19,6 +19,8 @@ export default function Layout({ sidebar, rightPanel }) {
   const [selectedSubjectId, setSelectedSubjectId] = useState(''); // State for selected subject ID
   const [selectedFile, setSelectedFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState('');
+  const [inputMethod, setInputMethod] = useState('file'); // 'file' or 'url'
+  const [manualPdfUrl, setManualPdfUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,6 +40,8 @@ export default function Layout({ sidebar, rightPanel }) {
     setSelectedSubjectId('');
     setSelectedFile(null);
     setPdfUrl('');
+    setInputMethod('file');
+    setManualPdfUrl('');
     setIsLoading(false);
     setError('');
     setFetchedSubjects([]); // Clear subjects
@@ -49,43 +53,57 @@ export default function Layout({ sidebar, rightPanel }) {
   const handleCreateNoteSubmit = async (event) => {
     event.preventDefault();
 
-    if (!title || !selectedSubjectId || !selectedFile || !selectedBranch || !selectedSemester) {
-      setError('Please fill in all required fields: Title, Subject, Branch, Semester, and upload a PDF.');
-      return;
+    // Validation based on input method
+    if (inputMethod === 'file') {
+      if (!title || !selectedSubjectId || !selectedFile || !selectedBranch || !selectedSemester) {
+        setError('Please fill in all required fields: Title, Subject, Branch, Semester, and upload a PDF.');
+        return;
+      }
+    } else if (inputMethod === 'url') {
+      if (!title || !selectedSubjectId || !manualPdfUrl || !selectedBranch || !selectedSemester) {
+        setError('Please fill in all required fields: Title, Subject, Branch, Semester, and enter a PDF URL.');
+        return;
+      }
+      // Basic URL validation
+      if (!manualPdfUrl.startsWith('http') || !manualPdfUrl.includes('.pdf')) {
+        setError('Please enter a valid PDF URL (must start with http/https and end with .pdf)');
+        return;
+      }
     }
 
     setIsLoading(true);
     setError('');
-    setPdfUrl(''); // Clear previous PDF URL
 
     try {
-      // 1. Upload PDF to ImageKit
-      const formData = new FormData();
-      formData.append('pdf', selectedFile);
+      let finalPdfUrl = manualPdfUrl;
 
-      const uploadResponse = await axios.post('/api/notes/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          // Authorization header is handled by the backend middleware (isAuthenticated, isAdmin)
-        },
-      });
+      // Upload file if file method is selected
+      if (inputMethod === 'file' && selectedFile) {
+        const formData = new FormData();
+        formData.append('pdf', selectedFile);
 
-      const uploadedPdfUrl = uploadResponse.data.data.url;
-      setPdfUrl(uploadedPdfUrl); // Update state to show uploaded URL
+        const uploadResponse = await axios.post('/api/notes/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart-form-data',
+          },
+        });
 
-      // 2. Create the note with the PDF URL
+        finalPdfUrl = uploadResponse.data.data.url;
+      }
+
+      // Create the note with the PDF URL
       const noteData = {
         title,
         description,
-        subject: selectedSubjectId, // Use the selected subject ID
+        subject: selectedSubjectId,
         branch: selectedBranch,
         semester: selectedSemester,
-        pdfUrl: uploadedPdfUrl,
+        pdfUrl: finalPdfUrl,
       };
 
       const noteResponse = await axios.post('/api/notes', noteData, {
         headers: {
-          // Authorization header is handled by the backend middleware (isAuthenticated, isAdmin)
+          // Authorization header is handled by the backend middleware
         },
       });
 
@@ -98,8 +116,10 @@ export default function Layout({ sidebar, rightPanel }) {
       setSelectedSubjectId('');
       setSelectedFile(null);
       setPdfUrl('');
-      setFetchedSubjects([]); // Clear subjects
-      toggleUploadPopup(); // Close the popup after successful creation
+      setInputMethod('file');
+      setManualPdfUrl('');
+      setFetchedSubjects([]);
+      toggleUploadPopup();
 
     } catch (err) {
       console.error('Error creating note:', err);
@@ -308,17 +328,7 @@ export default function Layout({ sidebar, rightPanel }) {
                   required
                 />
               </div>
-              <div>
-                <label htmlFor="noteDescription" className="block text-sm font-medium text-gray-300">Description</label>
-                <textarea
-                  id="noteDescription"
-                  rows="3"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
-                  placeholder="Enter a brief description"
-                ></textarea>
-              </div>
+              
               <div>
                 <label htmlFor="noteBranch" className="block text-sm font-medium text-gray-300">Branch</label>
                 <select
@@ -388,33 +398,105 @@ export default function Layout({ sidebar, rightPanel }) {
                   <p className="text-red-500 text-sm mt-1">{subjectFetchError}</p>
                 )}
               </div>
+
+              {/* Input Method Selection */}
               <div>
-                <label htmlFor="noteFile" className="block text-sm font-medium text-gray-300">Upload File</label>
-                <input
-                  type="file"
-                  id="noteFile"
-                  accept=".pdf"
-                  onChange={(e) => {
-                    setSelectedFile(e.target.files[0]);
-                    setPdfUrl(''); // Clear previous URL if a new file is selected
-                    setError(''); // Clear error on new file selection
-                  }}
-                  className="mt-1 block w-full text-sm text-gray-300
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-[#13c4a3] file:text-white
-                    hover:file:bg-[#10a080] cursor-pointer"
-                  required
-                />
-                {selectedFile && <p className="text-sm text-gray-400 mt-2">Selected: {selectedFile.name}</p>}
+                <label className="block text-sm font-medium text-gray-300 mb-3">Choose Input Method</label>
+                <div className="flex gap-6">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="inputMethod"
+                      value="file"
+                      checked={inputMethod === 'file'}
+                      onChange={(e) => {
+                        setInputMethod(e.target.value);
+                        setSelectedFile(null);
+                        setManualPdfUrl('');
+                        setPdfUrl('');
+                        setError('');
+                      }}
+                      className="mr-2 text-[#13c4a3] focus:ring-[#13c4a3]"
+                    />
+                    <span className="text-sm text-gray-300">Upload File</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="inputMethod"
+                      value="url"
+                      checked={inputMethod === 'url'}
+                      onChange={(e) => {
+                        setInputMethod(e.target.value);
+                        setSelectedFile(null);
+                        setPdfUrl('');
+                        setError('');
+                      }}
+                      className="mr-2 text-[#13c4a3] focus:ring-[#13c4a3]"
+                    />
+                    <span className="text-sm text-gray-300">Enter URL</span>
+                  </label>
+                </div>
               </div>
+
+              {/* Conditional Input Fields */}
+              {inputMethod === 'file' ? (
+                <div>
+                  <label htmlFor="noteFile" className="block text-sm font-medium text-gray-300">Upload PDF File</label>
+                  <input
+                    type="file"
+                    id="noteFile"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      setSelectedFile(e.target.files[0]);
+                      setPdfUrl('');
+                      setError('');
+                    }}
+                    className="mt-1 block w-full text-sm text-gray-300
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-[#13c4a3] file:text-white
+                      hover:file:bg-[#10a080] cursor-pointer"
+                    required
+                  />
+                  {selectedFile && <p className="text-sm text-gray-400 mt-2">Selected: {selectedFile.name}</p>}
+                </div>
+              ) : (
+                <div>
+                  <label htmlFor="pdfUrl" className="block text-sm font-medium text-gray-300">PDF URL</label>
+                  <input
+                    type="url"
+                    id="pdfUrl"
+                    value={manualPdfUrl}
+                    onChange={(e) => {
+                      setManualPdfUrl(e.target.value);
+                      setPdfUrl('');
+                      setError('');
+                    }}
+                    className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
+                    placeholder="https://example.com/document.pdf"
+                    required
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Enter a direct link to a PDF file</p>
+                </div>
+              )}
               <button
                 type="submit"
-                disabled={!title || !selectedSubjectId || !selectedFile || !selectedBranch || !selectedSemester || isLoading}
+                disabled={
+                  !title ||
+                  !selectedSubjectId ||
+                  !selectedBranch ||
+                  !selectedSemester ||
+                  (inputMethod === 'file' ? !selectedFile : !manualPdfUrl) ||
+                  isLoading
+                }
                 className="w-full bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Uploading & Creating...' : 'Upload Note'}
+                {isLoading
+                  ? (inputMethod === 'file' ? 'Uploading & Creating...' : 'Creating Note...')
+                  : (inputMethod === 'file' ? 'Upload Note' : 'Create Note')
+                }
               </button>
             </form>
           </div>

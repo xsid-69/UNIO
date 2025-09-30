@@ -155,24 +155,7 @@ const SubjectsList = ({
       >
         {subjects.map((item, index) => (
           <AnimatedItem key={index} delay={0.1} index={index}>
-            {item.to ? (
-              <Link to={item.to} className="no-underline block">
-                <div
-                  className={`p-4 bg-gray-800 rounded-lg transition-all duration-200 ease-in-out active:scale-95 hover:bg-gray-700 hover:scale-99 cursor-pointer ${
-                    selectedIndex === index ? 'bg-[#222]' : ''
-                  } ${item.className || itemClassName}`}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                  onClick={() => {
-                    setSelectedIndex(index);
-                    if (onItemSelect) {
-                      onItemSelect(item, index);
-                    }
-                  }}
-                >
-                  <p className="text-white m-0">{item.name}</p>
-                </div>
-              </Link>
-            ) : (
+            <Link to={`/subjects/${encodeURIComponent(item.name)}`} className="no-underline block">
               <div
                 className={`p-4 bg-gray-800 rounded-lg transition-all duration-200 ease-in-out active:scale-95 hover:bg-gray-700 hover:scale-99 cursor-pointer ${
                   selectedIndex === index ? 'bg-[#222]' : ''
@@ -187,7 +170,7 @@ const SubjectsList = ({
               >
                 <p className="text-white m-0">{item.name}</p>
               </div>
-            )}
+            </Link>
           </AnimatedItem>
         ))}
       </div>

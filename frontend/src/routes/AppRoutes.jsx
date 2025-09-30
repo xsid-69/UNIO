@@ -19,6 +19,7 @@ import Login from '../pages/Login'; // Assuming Login component is in ../pages/L
 import Register from '../pages/Register';
 import AuthSucess from '../pages/AuthSucess'; // Import AuthSucess
 import ProfileData from '../pages/settings/ProfileData';
+import ResourcesViewer from '../components/ResourcesViewer';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -42,12 +43,13 @@ const AppRoutes = () => {
           <Route path="ai" element={<Ai />} />
           <Route path="autoslide" element={<Autoslide />} />
           <Route path="notespage" element={<NotesPage/>}/>
-          <Route path="pyqspage" element={<PyqsPage/>}/>
+          <Route path="/pyqspage" element={<PyqsPage/>}/>
           <Route path="solvedqpage" element={<SolvedQPage/>}/>
           <Route path="syllabus" element={<SyllabusPage/>}/>
           <Route path="profiledata" element={<ProfileData/>}/>
           <Route path="profilesettings" element={<PrivateRoute><ProfileSettings/></PrivateRoute>}/>
           <Route path="subjects" element={<SubjectsPage />} />
+          <Route path="subjects/:subjectId" element={<ResourcesViewer />} />
         </Route>
       </Routes>
     </Router>
