@@ -49,7 +49,7 @@ const SubjectsList = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:3000/api/subjects?branch=${branch}&semester=${semester}`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/subjects?branch=${branch}&semester=${semester}`);
         if (!response.ok) {
           // Log the response status and text for debugging
           const errorText = await response.text();

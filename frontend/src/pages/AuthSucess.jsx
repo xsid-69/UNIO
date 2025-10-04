@@ -20,7 +20,7 @@ const AuthSucess = () => {
         try {
           // Do NOT store token in localStorage when using httpOnly cookie flows
           // The cookie was already set by the backend (httpOnly). Fetch the user.
-          const res = await axios.get('http://localhost:3000/api/auth/me');
+          const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
 
           if (res.data && res.data.user) {
             dispatch(loadUser({ user: res.data.user, token }));

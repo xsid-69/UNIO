@@ -13,7 +13,7 @@ export const registerUser = createAsyncThunk(
         formData.append('profilePic', userData.profilePic[0]);
       }
 
-      const response = await axios.post('http://localhost:3000/api/auth/register', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -33,7 +33,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (userData, { rejectWithValue, getState }) => { // Added getState
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/login', userData);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, userData);
       // Set Authorization header for subsequent requests
       if (response.data.token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
@@ -59,7 +59,7 @@ export const updateUserProfile = createAsyncThunk(
       // Assuming the API endpoint for updating user profile is /api/auth/updateProfile
       // and it accepts the updated user data in the request body.
       // The token should already be set in axios defaults if the user is logged in.
-      const response = await axios.put('http://localhost:3000/api/auth/updateProfile', userData);
+      const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/auth/updateProfile`, userData);
       return response.data; // Assuming the API returns the updated user data
     } catch (error) {
       if (error.response && error.response.data.message) {

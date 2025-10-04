@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        await axios.get('http://localhost:3000/api/auth/me');
+        await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
         setIsLoggedIn(true);
       } catch (error) {
         setIsLoggedIn(false);

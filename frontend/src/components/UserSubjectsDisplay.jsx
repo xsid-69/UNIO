@@ -16,7 +16,7 @@ const UserSubjectsDisplay = ({ user }) => {
         setLoading(true);
         setError(null);
         try {
-          const response = await axios.get(`http://localhost:3000/api/subjects/byUser`, {
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/subjects/byUser`, {
             params: {
               branch: userBranch,
               semester: userSemester

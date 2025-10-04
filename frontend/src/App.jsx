@@ -21,7 +21,7 @@ const App = () => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/auth/me');
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
         if (response.data && response.data.user) {
           dispatch(loadUser({ user: response.data.user, token: localStorage.getItem('token') }));
         }

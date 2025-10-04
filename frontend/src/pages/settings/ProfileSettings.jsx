@@ -15,7 +15,7 @@ const ProfileSettings = () => {
   const handleLogout = () => {
     const doLogout = async () => {
       try {
-        await axios.post('http://localhost:3000/api/auth/logout');
+        await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/logout`);
         toast.success('Logged out');
       } catch (err) {
         console.warn('Server logout failed, continuing with client-side logout', err);

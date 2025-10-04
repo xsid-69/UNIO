@@ -11,7 +11,7 @@ import "./../config/passport.config.js";
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: [process.env.FRONTEND_URL , process.env.BACKEND_URL],
   credentials: true,
 }));
 app.use(express.json());
@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; connect-src 'self' http://localhost:3000 http://localhost:5173; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+    "default-src 'self'; connect-src 'self' process.env.BACKEND_URL process.env.FRONTEND_URL; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
   );
   next();
 });

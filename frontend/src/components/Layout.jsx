@@ -82,7 +82,7 @@ export default function Layout({ sidebar, rightPanel }) {
         const formData = new FormData();
         formData.append('pdf', selectedFile);
 
-        const uploadResponse = await axios.post('/api/notes/upload', formData, {
+        const uploadResponse = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/notes/upload`, formData, {
           headers: {
             'Content-Type': 'multipart-form-data',
           },
@@ -101,7 +101,7 @@ export default function Layout({ sidebar, rightPanel }) {
         pdfUrl: finalPdfUrl,
       };
 
-      const noteResponse = await axios.post('/api/notes', noteData, {
+      const noteResponse = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/notes`, noteData, {
         headers: {
           // Authorization header is handled by the backend middleware
         },
@@ -141,7 +141,7 @@ export default function Layout({ sidebar, rightPanel }) {
         setSubjectsLoading(true);
         setSubjectFetchError(null);
         try {
-          const response = await axios.get(`http://localhost:3000/api/subjects/byUser`, {
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/subjects/byUser`, {
             params: {
               branch: selectedBranch,
               semester: Number(selectedSemester) // Ensure semester is a Number

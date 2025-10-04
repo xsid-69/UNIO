@@ -107,7 +107,7 @@ const Login = () => {
 
           <div className="mt-8">
             <button
-              onClick={() => window.open("http://localhost:3000/api/auth/google", "_self")}
+              onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/auth/google`, "_self")}
               type="button"
               className="w-full py-3 rounded-lg font-semibold text-white bg-[#181f2a] border border-[#3a446e] flex items-center justify-center space-x-2 hover:bg-[#3a446e] transition-colors"
             >

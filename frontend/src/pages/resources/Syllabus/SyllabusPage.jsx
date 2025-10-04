@@ -39,8 +39,8 @@ const SyllabusPage = () => {
       try {
         const branchParam = (user && user.branch) || null;
         const url = branchParam
-          ? `http://localhost:3000/api/resources/syllabus?branch=${encodeURIComponent(branchParam)}`
-          : 'http://localhost:3000/api/resources/syllabus';
+          ? `${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus?branch=${encodeURIComponent(branchParam)}`
+          : `${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus`;
 
         const res = await axios.get(url);
         if (res.data && res.data.files) setFiles(res.data.files);
@@ -195,7 +195,7 @@ const SyllabusPage = () => {
                   try {
                     // Request proxied file URL from backend so react-pdf can fetch same-origin
                     const qp = f.filePath ? `filePath=${encodeURIComponent(f.filePath)}` : `url=${encodeURIComponent(f.url)}`;
-                    const proxyRes = await axios.get(`http://localhost:3000/api/resources/syllabus/file?${qp}`, { responseType: 'blob' });
+                    const proxyRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus/file?${qp}`, { responseType: 'blob' });
                     // create object URL from blob and set as selectedFile.url
                     const blob = new Blob([proxyRes.data], { type: proxyRes.headers['content-type'] || 'application/pdf' });
                     const objectUrl = URL.createObjectURL(blob);

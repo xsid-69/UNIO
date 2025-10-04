@@ -28,7 +28,7 @@ const ResourcesViewer = () => {
     setError(null);
 
     try {
-      const response = await axios.get(`http://localhost:3000/api/notes/subject/${encodeURIComponent(subjectId)}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notes/subject/${encodeURIComponent(subjectId)}`);
 
       if (response.data.success) {
         setNotes(response.data.notes);
