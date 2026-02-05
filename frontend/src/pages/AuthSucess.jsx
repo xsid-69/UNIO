@@ -9,7 +9,7 @@ import Spinner from '../components/Spinner';
 const AuthSucess = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, loading, error } = useSelector((state) => state.auth);
+  const { loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -18,9 +18,12 @@ const AuthSucess = () => {
 
       if (token) {
         try {
-          // Do NOT store token in localStorage when using httpOnly cookie flows
-          // The cookie was already set by the backend (httpOnly). Fetch the user.
-          const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
+          // Use the token from URL to fetch user details, ensuring reliable auth even if cookies fail
+          const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
 
           if (res.data && res.data.user) {
             localStorage.setItem('token', token); // Store token as requested
