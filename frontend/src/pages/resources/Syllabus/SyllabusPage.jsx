@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 // react-pdf imports (top-level)
 import { Document, Page, pdfjs } from 'react-pdf';
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
 import Spinner from '../../../components/Spinner';
 
 const SyllabusPage = () => {

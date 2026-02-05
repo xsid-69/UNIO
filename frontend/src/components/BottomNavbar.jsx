@@ -22,7 +22,7 @@ const BottomNavbar = () => {
   );
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 h-16 glass-card rounded-2xl md:hidden flex justify-around items-center z-50 px-2 shadow-2xl border border-[var(--color-border)]">
+    <div className="fixed bottom-4 left-4 right-4 h-16 glass-card rounded-2xl md:hidden lg:hidden flex justify-around items-center z-50 px-2 shadow-2xl border border-[var(--color-border)]">
       <NavItem to="/" icon={<FaHome />} />
       <NavItem to="/archive" icon={<GrResources />} />
       <NavItem to="/ai" icon={<LuTrainFront />} />

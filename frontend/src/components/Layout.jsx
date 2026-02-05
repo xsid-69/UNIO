@@ -172,16 +172,7 @@ export default function Layout({ sidebar, rightPanel }) {
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600 opacity-[0.03] blur-[120px]" />
       </div>
 
-      {/* Hamburger for mobile */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl glass-card text-[var(--color-text-main)] hover:bg-[var(--color-surface-hover)] transition-colors"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open sidebar"
-      >
-        <span className="block w-6 h-0.5 bg-current mb-1.5"></span>
-        <span className="block w-6 h-0.5 bg-current mb-1.5"></span>
-        <span className="block w-6 h-0.5 bg-current"></span>
-      </button>
+      {/* Hamburger removed as requested */}
 
       <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full relative z-10">
         {/* Sidebar */}
@@ -267,7 +258,7 @@ export default function Layout({ sidebar, rightPanel }) {
 
           {/* Slide-in Profile panel for mobile */}
           {profileOpen && (
-            <div className="md:hidden fixed top-0 right-0 h-full w-80 glass-card border-l border-[var(--glass-border)] z-50 flex flex-col items-center p-8 gap-6 transition-transform duration-300 shadow-2xl overflow-y-auto">
+            <div className="md:hidden fixed top-0 right-0 h-full w-80 glass-card border-l border-[var(--glass-border)] z-[60] flex flex-col items-center p-8 gap-6 transition-transform duration-300 shadow-2xl overflow-y-auto">
               <button
                 className="absolute top-4 left-4 p-2 text-[var(--color-text-muted)] hover:text-white"
                 onClick={() => setProfileOpen(false)}
@@ -306,7 +297,7 @@ export default function Layout({ sidebar, rightPanel }) {
           
           {profileOpen && (
             <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] md:hidden"
               onClick={() => setProfileOpen(false)}
             />
           )}

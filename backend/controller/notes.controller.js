@@ -69,25 +69,58 @@ export async function getNotesBySubject(req, res) {
 export async function proxyPdf(req, res) {
   try {
     const { filePath, url } = req.query;
-    if (!filePath && !url) return res.status(400).json({ success: false, message: 'filePath or url required' });
+    console.log(`[proxyPdf] Request received. filePath: ${filePath}, url: ${url}`);
+
+    if (!filePath && !url) {
+        console.error('[proxyPdf] Missing filePath or url');
+        return res.status(400).json({ success: false, message: 'filePath or url required' });
+    }
 
     let targetUrl = url;
     if (filePath) {
-      // Construct the full ImageKit URL if only path is provided
       targetUrl = imagekit.url({ path: filePath });
     }
+    console.log(`[proxyPdf] Target URL: ${targetUrl}`);
 
-    const axiosRes = await axios.get(targetUrl, { responseType: 'stream' });
-    if (axiosRes.headers['content-type']) res.setHeader('Content-Type', axiosRes.headers['content-type']);
-    if (axiosRes.headers['content-length']) res.setHeader('Content-Length', axiosRes.headers['content-length']);
-    axiosRes.data.pipe(res);
-    axiosRes.data.on('error', (streamErr) => {
-      console.error('Stream error while piping pdf:', streamErr);
-      try { res.end(); } catch (e) {}
-    });
+    try {
+        const axiosRes = await axios.get(targetUrl, { 
+            responseType: 'stream',
+            validateStatus: (status) => status < 400 // Throw error for 400+
+        });
+        
+        console.log(`[proxyPdf] Upstream status: ${axiosRes.status}`);
+        console.log(`[proxyPdf] Content-Type: ${axiosRes.headers['content-type']}`);
+        console.log(`[proxyPdf] Content-Length: ${axiosRes.headers['content-length']}`);
+
+        if (axiosRes.headers['content-type']) {
+            res.setHeader('Content-Type', axiosRes.headers['content-type']);
+        } else {
+            res.setHeader('Content-Type', 'application/pdf'); // Fallback
+        }
+        
+        if (axiosRes.headers['content-length']) {
+            res.setHeader('Content-Length', axiosRes.headers['content-length']);
+        }
+
+        axiosRes.data.pipe(res);
+        
+        axiosRes.data.on('error', (streamErr) => {
+            console.error('[proxyPdf] Stream error:', streamErr);
+            if (!res.headersSent) res.status(502).json({ success: false, message: 'Stream failed' });
+        });
+        
+    } catch (upstreamErr) {
+        console.error('[proxyPdf] Upstream error:', upstreamErr.message);
+        if (upstreamErr.response) {
+            console.error('[proxyPdf] Upstream response status:', upstreamErr.response.status);
+            // console.error('[proxyPdf] Upstream response data:', upstreamErr.response.data); // Stream data might be messy to log
+        }
+        return res.status(502).json({ success: false, message: 'Failed to fetch PDF from upstream' });
+    }
+
   } catch (err) {
     console.error('proxyPdf error', err && err.stack ? err.stack : err);
-    return res.status(502).json({ success: false, message: 'Failed to proxy pdf' });
+    return res.status(500).json({ success: false, message: 'Internal Server Error in proxy' });
   }
 }
 

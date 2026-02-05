@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import Spinner from './Spinner';
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
 
 const NotesViewer = ({ open, onClose, fileUrl, proxied = false }) => {
   const [numPages, setNumPages] = useState(null);
