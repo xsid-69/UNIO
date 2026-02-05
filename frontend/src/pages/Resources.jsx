@@ -9,18 +9,18 @@ import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 const Resources = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth(); // Get isLoggedIn from AuthContext
-  const [showLoginPopup, setShowLoginPopup] = useState(!isLoggedIn); // State for the login popup
+  const { isAuthenticated } = useAuth(); // Get isAuthenticated from AuthContext
+  const [showLoginPopup, setShowLoginPopup] = useState(!isAuthenticated); // State for the login popup
   const [activeTab, setActiveTab] = useState('Features'); // Add state for active tab
 
   useEffect(() => {
-    // If not logged in, show the popup. The popup will handle navigation.
-    if (!isLoggedIn) {
+    // If not authenticated, show the popup. The popup will handle navigation.
+    if (!isAuthenticated) {
       setShowLoginPopup(true);
     } else {
-      setShowLoginPopup(false); // Hide popup if logged in
+      setShowLoginPopup(false); // Hide popup if authenticated
     }
-  }, [isLoggedIn]); // Depend on isLoggedIn
+  }, [isAuthenticated]); // Depend on isAuthenticated
 
   const handleGoBack = () => {
     navigate(-1);

@@ -2,38 +2,41 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import ProfileImage from '../components/ProfileImage';
-import isAdmin from './../../../backend/middlewares/admin.middleware';
-
-
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
 
   return (
-    <div className='flex w-full h-screen items-start'>
-      <div id='Profile' className="bg-gray-900 flex items-center flex-col  p-6 rounded-lg shadow-lg max-w-xs w-full text-center">
+    <div className='flex w-full h-full items-start justify-center pt-8'>
+      <div id='Profile' className="glass-card flex items-center flex-col p-8 rounded-3xl shadow-xl w-full max-w-sm text-center relative hover:shadow-2xl transition-all duration-300 border border-[var(--glass-border)]">
         {user?.isAdmin ? 
-        <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+        <div className="absolute top-4 right-4 bg-red-500/80 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
           Admin
         </div> 
         : null  
       }
-        <Link to={"/profilesettings"} >
-           <div className="relative w-full h-16 my-2">
-          <ProfileImage 
-            src={user?.profilePic || user?.avatar}
-            size="md"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-4 border-white"
-          />
-        </div>
-        <h2 id='name' className="text-base font-bold mb-0.5">{user?.name || 'User Name'}</h2>
-        <p id='info' className="text-gray-400 text-xs flex items-center justify-center gap-1 mb-1">
+        <Link to={"/profilesettings"} className="group">
+           <div className="relative w-full my-4 flex justify-center">
+             <div className="relative">
+                <ProfileImage 
+                  src={user?.profilePic || user?.avatar}
+                  size="lg"
+                  className="border-4 border-[var(--color-primary)]/30 group-hover:border-[var(--color-primary)] transition-all duration-300 rounded-full"
+                />
+             </div>
+           </div>
+        <h2 id='name' className="text-xl font-bold mb-1 text-white group-hover:text-[var(--color-primary)] transition-colors">{user?.name || 'User Name'}</h2>
+        <p id='info' className="text-[var(--color-text-muted)] text-sm mb-4">
           {user?.email || 'user@example.com'}
         </p>
-        <p>{user?.branch}</p>
-        <div>
-          <span>{user?.year} year </span>
-          <span>{user?.semester} Semester</span>
+        <div className="w-full h-px bg-[var(--glass-border)] my-4"></div>
+        <div className="text-[var(--color-text-main)] space-y-1">
+          <p className="font-semibold">{user?.branch || 'Branch'}</p>
+          <div className="flex justify-center gap-2 text-sm text-[var(--color-text-muted)]">
+             <span>{user?.year ? `${user.year} Year` : 'Year'}</span>
+             <span>•</span>
+             <span>{user?.semester ? `Sem ${user.semester}` : 'Semester'}</span>
+          </div>
         </div>
         </Link>
         

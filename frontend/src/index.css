@@ -1,15 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+:root {
+  /* Rich Dark Theme Palette */
+  --color-background: #020617; /* Slate 950 */
+  --color-surface: #0f172a; /* Slate 900 */
+  --color-surface-hover: #1e293b; /* Slate 800 */
+
+  --color-primary: #13c4a3; /* Existing Teal - Kept for brand consistency but refined usage */
+  --color-primary-hover: #0fa88d;
+  --color-primary-light: rgba(19, 196, 163, 0.15);
+
+  --color-text-main: #f8fafc; /* Slate 50 */
+  --color-text-muted: #94a3b8; /* Slate 400 */
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  /* Glassmorphism Variables */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
 body {
-  background-color: #020412; /* Default dark background */
-  color: #ffffff; /* Default dark text color */
+  background-color: var(--color-background);
+  color: var(--color-text-main);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Outfit", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Enhanced Grid Background */
 .grid-background {
-  background-image: linear-gradient(rgba(200, 220, 255, 0.2) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(200, 220, 255, 0.2) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
 }
 
+/* Swiper Styles */
 .mySwiper {
   width: 100%;
   height: 100%;
@@ -18,9 +58,7 @@ body {
 .mySwiper .swiper-slide {
   text-align: center;
   font-size: 18px;
-  background: #fff;
-
-  /* Center slide text vertically */
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,79 +66,69 @@ body {
 
 /* Custom scrollbar hide styles */
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
-
-/* For IE, Edge and Firefox */
 .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Refined toast styles: muted, low-contrast, clean and aesthetic */
+/* Glass Card Utility */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Modern Input Styles */
+.modern-input {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  transition: all 0.2s ease;
+}
+.modern-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+  outline: none;
+}
+
+/* Modern Button Styles */
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(19, 196, 163, 0.3);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(19, 196, 163, 0.2);
+}
+
+/* Refined Toast Styles */
 .custom-toast {
-  background: rgba(12,14,20,0.64); /* soft translucent dark */
-  color: #d7e9e4; /* gentle off-white */
-  border: none;
-  box-shadow: 0 8px 24px rgba(3,6,12,0.45); /* soft, diffused shadow */
-  backdrop-filter: blur(6px) saturate(1.05);
-  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--color-text-main);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
   border-radius: 12px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  transform-origin: top right;
-  transition: transform 220ms cubic-bezier(.2,.9,.3,1), opacity 200ms ease;
-}
-
-.custom-toast:hover {
-  transform: translateY(-2px);
+  font-family: "Inter", sans-serif;
 }
 
 .custom-toast-body {
-  color: #d7e9e4;
-  font-size: 13.5px;
-  line-height: 1.3;
-  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* subtle icon area if react-toastify includes icons */
-.custom-toast .Toastify__toast-icon {
-  margin-right: 6px;
-  opacity: 0.95;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
-}
-
-.custom-toast .Toastify__close-button {
-  color: #cfeee6;
-  opacity: 0.8;
-}
-
-/* Thin, muted progress bar */
 .custom-toast-progress {
-  background: linear-gradient(90deg, rgba(19,196,163,0.75), rgba(100,220,200,0.35));
-  height: 3px;
-  border-radius: 999px;
-  opacity: 0.95;
-}
-
-/* Subtle left accent instead of bright border-left */
-.custom-toast--success {
-  box-shadow: 0 8px 24px rgba(3,6,12,0.45), inset 6px 0 0 rgba(19,196,163,0.12);
-}
-.custom-toast--error {
-  box-shadow: 0 8px 24px rgba(3,6,12,0.45), inset 6px 0 0 rgba(255,107,107,0.12);
-}
-.custom-toast--warn {
-  box-shadow: 0 8px 24px rgba(3,6,12,0.45), inset 6px 0 0 rgba(255,184,107,0.10);
-}
-
-/* Responsive tweaks */
-@media (max-width: 640px) {
-  .custom-toast {
-    margin: 8px !important;
-    width: calc(100% - 32px) !important;
-    left: 16px !important;
-    right: 16px !important;
-  }
+  background: linear-gradient(90deg, var(--color-primary), #34d399);
+  height: 2px;
 }

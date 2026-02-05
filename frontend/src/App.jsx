@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import Loader from './components/Loader';
 import AppRoutes from './routes/AppRoutes';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './components/Sidebar';
 import { GridBeams } from './components/magicui/grid-beams';
@@ -44,8 +43,44 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-transparent dark">
-        <Loader />
+      <div className="w-full h-screen bg-[var(--color-background)] p-4 md:p-10 flex flex-col md:flex-row gap-6 overflow-hidden">
+         {/* Skeleton Sidebar Layout mimicking the real one */}
+         <div className="hidden md:flex flex-col gap-6 w-[96px] h-full items-center py-6 glass-card rounded-l-3xl border-r border-[var(--glass-border)]">
+             <div className="w-10 h-10 bg-[var(--color-surface-hover)] rounded-xl animate-pulse"></div>
+             <div className="flex flex-col gap-8 w-full items-center mt-10">
+                {[1,2,3,4,5].map(i => <div key={i} className="w-8 h-8 rounded-lg bg-[var(--color-surface-hover)] animate-pulse"></div>)}
+             </div>
+         </div>
+         
+         {/* Main Content Skeleton */}
+         <div className="flex-1 h-full glass-card rounded-3xl p-8 flex flex-col gap-8 border border-[var(--glass-border)] relative overflow-hidden">
+             
+             {/* Header Skeleton */}
+             <div className="flex justify-between items-center mb-4">
+               <div>
+                  <div className="h-8 w-48 bg-[var(--color-surface-hover)] rounded-lg animate-pulse mb-3"></div>
+                  <div className="h-4 w-32 bg-[var(--color-surface-hover)] rounded-lg animate-pulse"></div>
+               </div>
+               <div className="w-12 h-12 rounded-full bg-[var(--color-surface-hover)] animate-pulse"></div>
+             </div>
+
+             {/* Hero/Slider Skeleton */}
+             <div className="h-64 w-full bg-[var(--color-surface-hover)] rounded-2xl animate-pulse opacity-50"></div>
+             
+             {/* Tabs Skeleton */}
+             <div className="flex gap-6 border-b border-[var(--glass-border)] pb-4">
+                <div className="h-6 w-24 bg-[var(--color-surface-hover)] rounded-md animate-pulse"></div>
+                <div className="h-6 w-24 bg-[var(--color-surface-hover)] rounded-md animate-pulse"></div>
+                <div className="h-6 w-24 bg-[var(--color-surface-hover)] rounded-md animate-pulse"></div>
+             </div>
+
+             {/* Grid Skeleton */}
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {[1,2,3,4].map(i => (
+                    <div key={i} className="h-48 bg-[var(--color-surface-hover)] rounded-2xl animate-pulse opacity-40"></div>
+                 ))}
+             </div>
+         </div>
       </div>
     );
   }

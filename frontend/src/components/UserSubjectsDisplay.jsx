@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import axios from 'axios'; 
 import { useNavigate } from 'react-router-dom';
 
@@ -60,7 +60,6 @@ const UserSubjectsDisplay = ({ user }) => {
   }
    
   const handleClick = (subject) => {
-    console.log(`Subject clicked: ${subject.name}`);
     navigate(`/subjects/${subject._id}`);
 
   };

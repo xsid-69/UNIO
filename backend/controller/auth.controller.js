@@ -13,6 +13,9 @@ async function registerController(req , res ) {
             {message:"Email already exists"
        });
     }
+    if (!password) {
+        return res.status(400).json({ message: 'Password is required' });
+    }
 
     const hashedPassword = await bcrypt.hash(password , 10);
     
@@ -23,14 +26,23 @@ async function registerController(req , res ) {
         const result = await uploadImage(req.file.buffer, filename);
         profilePicUrl = result.url;
     }
+    let user;
+    try {
+        user = await userModel.create({
+            name,
+            email,
+            password: hashedPassword,
+            profilePic: profilePicUrl
+        });
+    } catch (err) {
+        console.error('Error creating user:', err && err.message ? err.message : err);
+        // Duplicate key (email) handling
+        if (err && err.code === 11000) {
+            return res.status(409).json({ message: 'Email already registered' });
+        }
+        return res.status(500).json({ message: 'Failed to create user' });
+    }
 
-    const user = await userModel.create({
-        name,
-        email,
-        password: hashedPassword,
-        profilePic: profilePicUrl
-    })
-    
     const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '7d' }); // Added expiresIn
     // Set httpOnly cookie for authentication persistence
     // In development, secure should be false. In production, it should be true.
@@ -60,7 +72,21 @@ async function logincontroller(req , res){
             message:"User not found"
         })
     }
-    const isPasswordValid= await bcrypt.compare(password , user.password);
+    if (!password) {
+        return res.status(400).json({ message: 'Password is required' });
+    }
+
+    if (!user.password) {
+        return res.status(400).json({ message: 'This account does not have a password. Please sign in with the provider or reset your password.' });
+    }
+
+    let isPasswordValid = false;
+    try {
+        isPasswordValid = await bcrypt.compare(password , user.password);
+    } catch (err) {
+        console.error('Error comparing passwords:', err && err.message ? err.message : err);
+        return res.status(500).json({ message: 'Failed to validate credentials' });
+    }
     if(!isPasswordValid){
         return res.status(400).json({
             message:"Invalid password"

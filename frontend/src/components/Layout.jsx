@@ -165,138 +165,149 @@ export default function Layout({ sidebar, rightPanel }) {
   }, [selectedBranch, selectedSemester]);
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen relative overflow-hidden">
+      {/* Background Glow Effects */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-primary)] opacity-[0.03] blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600 opacity-[0.03] blur-[120px]" />
+      </div>
+
       {/* Hamburger for mobile */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded bg-[#222748]"
+        className="md:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl glass-card text-[var(--color-text-main)] hover:bg-[var(--color-surface-hover)] transition-colors"
         onClick={() => setSidebarOpen(true)}
         aria-label="Open sidebar"
       >
-        <span className="block w-6 h-0.5 bg-white mb-1"></span>
-        <span className="block w-6 h-0.5 bg-white mb-1"></span>
-        <span className="block w-6 h-0.5 bg-white"></span>
+        <span className="block w-6 h-0.5 bg-current mb-1.5"></span>
+        <span className="block w-6 h-0.5 bg-current mb-1.5"></span>
+        <span className="block w-6 h-0.5 bg-current"></span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_0] lg:grid-cols-[96px_1fr_340px] grid-rows-1 h-full relative z-10">
         {/* Sidebar */}
-        {/* Mobile: hidden unless open, Desktop: always visible */}
         <aside
-          className={`bg-[#222748]/10 backdrop-blur-md flex flex-col items-center py-8 gap-8 rounded-l-3xl
-            fixed top-0 left-0 h-full z-40 transition-transform duration-300
+          className={`glass-card flex flex-col items-center py-8 gap-8 border-r border-[var(--glass-border)]
+            fixed top-0 left-0 h-full z-40 transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            md:static md:translate-x-0 md:flex md:w-[96px] w-64
+            md:static md:translate-x-0 md:flex md:w-[96px] w-72 md:bg-transparent md:border-0 md:backdrop-filter-none md:shadow-none
           `}
         >
           {/* Close button for mobile */}
           <button
-            className="md:hidden absolute top-4 right-4 p-2 rounded bg-transparent"
+            className="md:hidden absolute top-4 right-4 p-2 text-[var(--color-text-muted)] hover:text-white"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
-            <span className="block w-5 h-0.5 bg-white rotate-45 absolute"></span>
-            <span className="block w-5 h-0.5 bg-white -rotate-45"></span>
+            <span className="block w-5 h-0.5 bg-current rotate-45 absolute transition-transform"></span>
+            <span className="block w-5 h-0.5 bg-current -rotate-45 transition-transform"></span>
           </button>
           {sidebar}
         </aside>
+
         {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-transparent z-30 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar overlay"
           />
         )}
+
         {/* Main Section */}
-        <main className="md:p-10 p-10  md:w-[70vw]">
+        <main className="md:p-10 p-6 w-full md:max-w-7xl mx-auto overflow-y-auto scrollbar-hide">
           <Outlet />
         </main>
+
         {/* Profile Aside for desktop */}
         <aside
           id="Profile"
-          className="hidden md:flex flex-col items-center bg-[#222748]/10 backdrop-blur-md w-[22vw] p-8 text-white overflow-y-auto"
+          className="hidden lg:flex flex-col items-center bg-[var(--color-surface)]/30 backdrop-blur-md border-l border-[var(--glass-border)] w-full p-8 text-[var(--color-text-main)] overflow-y-auto"
         >
           {isLoggedIn ? (
             <>
               <Profile />
               {user?.isAdmin && (
-                <div className="mt-3 p-4 bg-gray-900 rounded-lg shadow-md text-white w-full text-center">
-                  <p className="text-lg font-semibold">Admin Note Creation</p>
-                  <button onClick={toggleUploadPopup} className="mt-2 bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors">
+                <div className="mt-6 p-6 glass-card rounded-2xl w-full text-center">
+                  <p className="text-lg font-semibold mb-3">Admin Actions</p>
+                  <button onClick={toggleUploadPopup} className="btn-primary w-full py-2.5 rounded-xl font-medium shadow-lg shadow-[var(--color-primary)]/20">
                     Create New Note
                   </button>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center">
+            <div className="text-center w-full">
               <button
                 onClick={handleSignInClick}
-                className="bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors"
+                className="btn-primary w-full py-3 rounded-xl font-semibold shadow-lg shadow-[var(--color-primary)]/20"
               >
                 Sign in now
               </button>
             </div>
           )}
         </aside>
+
         {/* Profile Circle for mobile */}
         <>
           <button
-            className="md:hidden fixed top-4 right-4 z-50 w-11 h-11 bg-[#232946] rounded-full flex items-center justify-center shadow-lg border-2 border-[#13c4a3] text-white text-lg font-bold"
+            className="md:hidden fixed top-4 right-4 z-50 w-11 h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--color-primary)] bg-[var(--color-surface)] overflow-hidden"
             onClick={() => setProfileOpen(true)}
             aria-label="Open profile panel"
           >
             {isLoggedIn ? (
               <img
-                src={user?.profilePic || user?.avatar } // Use user?.profilePic as requested
-                alt="User Avatar"
-                className="w-full h-full object-cover rounded-full"
+                src={user?.profilePic || user?.avatar }
+                alt="User"
+                className="w-full h-full object-cover"
               />
             ) : (
-              'Sign In'
+              <span className="text-xs font-bold text-[var(--color-primary)]">Sign In</span>
             )}
           </button>
+
           {/* Slide-in Profile panel for mobile */}
           {profileOpen && (
-            <div className="md:hidden fixed top-0 right-0 h-full w-64 bg-[#222748]/10 backdrop-blur-md rounded-l-3xl p-8 z-50 flex flex-col items-center gap-6 transition-transform duration-300 shadow-2xl overflow-y-auto">
+            <div className="md:hidden fixed top-0 right-0 h-full w-80 glass-card border-l border-[var(--glass-border)] z-50 flex flex-col items-center p-8 gap-6 transition-transform duration-300 shadow-2xl overflow-y-auto">
               <button
-                className="absolute top-4 left-4 p-2 rounded bg-[#181f2a]"
+                className="absolute top-4 left-4 p-2 text-[var(--color-text-muted)] hover:text-white"
                 onClick={() => setProfileOpen(false)}
                 aria-label="Close profile panel"
               >
-                <span className="block w-5 h-0.5 bg-white rotate-45 absolute"></span>
-                <span className="block w-5 h-0.5 bg-white -rotate-45"></span>
+                <span className="block w-5 h-0.5 bg-current rotate-45 absolute"></span>
+                <span className="block w-5 h-0.5 bg-current -rotate-45"></span>
               </button>
-              {/* Profile Content for mobile */}
+              
               {isLoggedIn ? (
                 <>
                   <Profile />
                   {user?.isAdmin && (
-                    <div className="mt-3 p-4 bg-gray-700 rounded-lg shadow-md text-white w-full text-center">
-                      <p className="text-lg font-semibold">Admin Note Creation</p>
-                      <button onClick={toggleUploadPopup} className="mt-2 bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors">
+                    <div className="mt-4 p-5 glass-card rounded-2xl w-full text-center">
+                      <p className="text-lg font-semibold mb-3">Admin Actions</p>
+                      <button onClick={toggleUploadPopup} className="btn-primary w-full py-2 rounded-lg font-semibold">
                         Create New Note
                       </button>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center">
+                <div className="text-center w-full mt-10">
+                   <h3 className="text-xl font-bold mb-4">Welcome to UNIO</h3>
+                   <p className="text-[var(--color-text-muted)] mb-6">Sign in to access your profile and notes.</p>
                   <button
                     onClick={handleSignInClick}
-                    className="bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors"
+                    className="btn-primary w-full py-3 rounded-xl font-semibold"
                   >
-                    Sign in now
+                    Sign In
                   </button>
                 </div>
               )}
             </div>
           )}
-          {/* Overlay for mobile profile panel */}
+          
           {profileOpen && (
             <div
-              className="fixed inset-0 bg-black/40 z-40 md:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
               onClick={() => setProfileOpen(false)}
-              aria-label="Close profile overlay"
             />
           )}
         </>
@@ -304,106 +315,107 @@ export default function Layout({ sidebar, rightPanel }) {
 
       {/* Notes Uploading Popup */}
       {isUploadPopupOpen && (
-        <div className="fixed inset-0 bg-black/70 bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-white w-11/12 md:w-1/2 lg:w-1/3 relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="glass-card p-8 rounded-3xl w-full max-w-lg relative animate-[fadeIn_0.3s_ease-out]">
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl"
+              className="absolute top-5 right-5 text-[var(--color-text-muted)] hover:text-white text-2xl transition-colors"
               onClick={toggleUploadPopup}
             >
               &times;
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-center">Upload New Note</h2>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            {pdfUrl && <p className="text-green-400 mb-4">PDF uploaded: {pdfUrl}</p>}
+            <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-[var(--color-primary)] to-blue-400 bg-clip-text text-transparent">Upload New Note</h2>
+            
+            {error && <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm">{error}</div>}
+            {pdfUrl && <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-200 text-sm break-all">PDF Ready: {pdfUrl}</div>}
+            
             <form onSubmit={handleCreateNoteSubmit} className="space-y-4">
               <div>
-                <label htmlFor="noteTitle" className="block text-sm font-medium text-gray-300">Note Title</label>
+                <label htmlFor="noteTitle" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Title</label>
                 <input
                   type="text"
                   id="noteTitle"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
-                  placeholder="Enter note title"
+                  className="modern-input w-full p-2.5 rounded-lg text-sm"
+                  placeholder="e.g. Advanced Calculus Notes"
                   required
                 />
               </div>
               
-              <div>
-                <label htmlFor="noteBranch" className="block text-sm font-medium text-gray-300">Branch</label>
-                <select
-                  id="noteBranch"
-                  className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
-                  value={selectedBranch}
-                  onChange={(e) => {
-                    setSelectedBranch(e.target.value);
-                    setSelectedSubjectId(''); // Clear subject selection when branch changes
-                    setFetchedSubjects([]); // Clear subjects
-                  }}
-                  required
-                >
-                  <option value="">Select Branch</option>
-                  {['Computer Science and Engineering', 'Artificial Intelligence & Machine Learning', 'Artificial Intelligence', 'Computer Science Engineering Data Science', 'Computer Science and Engineering (Cyber Security)', 'Chemical Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Electronics Engineering', 'Electronics and TeleCommunication Engineering', 'Information Technology', 'Civil Engineering', 'Industrial Engineering', 'Biomedical Engineering', 'Fire Engineering', 'Electronics Design Technology'].map((branch) => (
-                    <option key={branch} value={branch}>
-                      {branch}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="noteBranch" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Branch</label>
+                  <select
+                    id="noteBranch"
+                    className="modern-input w-full p-2.5 rounded-lg text-sm appearance-none"
+                    value={selectedBranch}
+                    onChange={(e) => {
+                      setSelectedBranch(e.target.value);
+                      setSelectedSubjectId('');
+                      setFetchedSubjects([]);
+                    }}
+                    required
+                  >
+                    <option value="" className="bg-[var(--color-surface)]">Select Branch</option>
+                    {['Computer Science and Engineering', 'Artificial Intelligence & Machine Learning', 'Artificial Intelligence', 'Computer Science Engineering Data Science', 'Computer Science and Engineering (Cyber Security)', 'Chemical Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Electronics Engineering', 'Electronics and TeleCommunication Engineering', 'Information Technology', 'Civil Engineering', 'Industrial Engineering', 'Biomedical Engineering', 'Fire Engineering', 'Electronics Design Technology'].map((branch) => (
+                      <option key={branch} value={branch} className="bg-[var(--color-surface)]">
+                        {branch}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="noteSemester" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Semester</label>
+                  <select
+                    id="noteSemester"
+                    className="modern-input w-full p-2.5 rounded-lg text-sm appearance-none"
+                    value={selectedSemester}
+                    onChange={(e) => {
+                      setSelectedSemester(e.target.value);
+                      setSelectedSubjectId('');
+                      setFetchedSubjects([]);
+                    }}
+                    required
+                  >
+                    <option value="" className="bg-[var(--color-surface)]">Sem</option>
+                    {Array.from({ length: 8 }, (_, i) => i + 1).map((semester) => (
+                      <option key={semester} value={semester} className="bg-[var(--color-surface)]">
+                        {semester}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <div>
-                <label htmlFor="noteSemester" className="block text-sm font-medium text-gray-300">Semester</label>
-                <select
-                  id="noteSemester"
-                  className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
-                  value={selectedSemester}
-                  onChange={(e) => {
-                    setSelectedSemester(e.target.value);
-                    setSelectedSubjectId(''); // Clear subject selection when semester changes
-                    setFetchedSubjects([]); // Clear subjects
-                  }}
-                  required
-                >
-                  <option value="">Select Semester</option>
-                  {Array.from({ length: 8 }, (_, i) => i + 1).map((semester) => (
-                    <option key={semester} value={semester}>
-                      {semester}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="noteSubject" className="block text-sm font-medium text-gray-300">Subject</label>
+                <label htmlFor="noteSubject" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Subject</label>
                 <select
                   id="noteSubject"
-                  className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
+                  className="modern-input w-full p-2.5 rounded-lg text-sm appearance-none"
                   value={selectedSubjectId}
                   onChange={(e) => setSelectedSubjectId(e.target.value)}
                   disabled={!selectedBranch || !selectedSemester || subjectsLoading}
                   required
                 >
-                  <option value="">
+                  <option value="" className="bg-[var(--color-surface)]">
                     {subjectsLoading
-                      ? 'Loading Subjects...'
+                      ? 'Loading subjects...'
                       : !selectedBranch || !selectedSemester
-                      ? 'Select Branch and Semester'
+                      ? 'Select Branch & Sem first'
                       : 'Select Subject'}
                   </option>
                   {fetchedSubjects.map((subject) => (
-                    <option key={subject._id} value={subject._id}>
+                    <option key={subject._id} value={subject._id} className="bg-[var(--color-surface)]">
                       {subject.name}
                     </option>
                   ))}
                 </select>
-                {subjectFetchError && (
-                  <p className="text-red-500 text-sm mt-1">{subjectFetchError}</p>
-                )}
               </div>
 
               {/* Input Method Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Choose Input Method</label>
-                <div className="flex gap-6">
-                  <label className="flex items-center">
+              <div className="pt-2">
+                <div className="flex bg-[var(--color-surface)]/50 p-1 rounded-lg border border-[var(--color-border)]">
+                  <label className={`flex-1 flex items-center justify-center py-1.5 rounded-md cursor-pointer text-sm font-medium transition-all ${inputMethod === 'file' ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-[var(--color-text-muted)] hover:text-white'}`}>
                     <input
                       type="radio"
                       name="inputMethod"
@@ -416,11 +428,11 @@ export default function Layout({ sidebar, rightPanel }) {
                         setPdfUrl('');
                         setError('');
                       }}
-                      className="mr-2 text-[#13c4a3] focus:ring-[#13c4a3]"
+                      className="hidden"
                     />
-                    <span className="text-sm text-gray-300">Upload File</span>
+                    Upload File
                   </label>
-                  <label className="flex items-center">
+                  <label className={`flex-1 flex items-center justify-center py-1.5 rounded-md cursor-pointer text-sm font-medium transition-all ${inputMethod === 'url' ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-[var(--color-text-muted)] hover:text-white'}`}>
                     <input
                       type="radio"
                       name="inputMethod"
@@ -432,39 +444,35 @@ export default function Layout({ sidebar, rightPanel }) {
                         setPdfUrl('');
                         setError('');
                       }}
-                      className="mr-2 text-[#13c4a3] focus:ring-[#13c4a3]"
+                       className="hidden"
                     />
-                    <span className="text-sm text-gray-300">Enter URL</span>
+                    Enter URL
                   </label>
                 </div>
               </div>
 
-              {/* Conditional Input Fields */}
-              {inputMethod === 'file' ? (
-                <div>
-                  <label htmlFor="noteFile" className="block text-sm font-medium text-gray-300">Upload PDF File</label>
-                  <input
-                    type="file"
-                    id="noteFile"
-                    accept=".pdf"
-                    onChange={(e) => {
-                      setSelectedFile(e.target.files[0]);
-                      setPdfUrl('');
-                      setError('');
-                    }}
-                    className="mt-1 block w-full text-sm text-gray-300
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-md file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-[#13c4a3] file:text-white
-                      hover:file:bg-[#10a080] cursor-pointer"
-                    required
-                  />
-                  {selectedFile && <p className="text-sm text-gray-400 mt-2">Selected: {selectedFile.name}</p>}
-                </div>
-              ) : (
-                <div>
-                  <label htmlFor="pdfUrl" className="block text-sm font-medium text-gray-300">PDF URL</label>
+              <div>
+                 {inputMethod === 'file' ? (
+                  <div className="relative">
+                     <input
+                      type="file"
+                      id="noteFile"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        setSelectedFile(e.target.files[0]);
+                        setPdfUrl('');
+                        setError('');
+                      }}
+                      className="w-full text-sm text-[var(--color-text-muted)]
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-[var(--color-primary)] file:text-white
+                        hover:file:bg-[var(--color-primary-hover)] cursor-pointer"
+                      required
+                    />
+                  </div>
+                ) : (
                   <input
                     type="url"
                     id="pdfUrl"
@@ -474,28 +482,21 @@ export default function Layout({ sidebar, rightPanel }) {
                       setPdfUrl('');
                       setError('');
                     }}
-                    className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-[#13c4a3] focus:border-[#13c4a3]"
+                    className="modern-input w-full p-2.5 rounded-lg text-sm"
                     placeholder="https://example.com/document.pdf"
                     required
                   />
-                  <p className="text-xs text-gray-400 mt-1">Enter a direct link to a PDF file</p>
-                </div>
-              )}
+                )}
+              </div>
+
               <button
                 type="submit"
-                disabled={
-                  !title ||
-                  !selectedSubjectId ||
-                  !selectedBranch ||
-                  !selectedSemester ||
-                  (inputMethod === 'file' ? !selectedFile : !manualPdfUrl) ||
-                  isLoading
-                }
-                className="w-full bg-[#13c4a3] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#10a080] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
+                className="btn-primary w-full py-3 rounded-xl font-bold shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-[var(--color-primary)]/40 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading
-                  ? (inputMethod === 'file' ? 'Uploading & Creating...' : 'Creating Note...')
-                  : (inputMethod === 'file' ? 'Upload Note' : 'Create Note')
+                  ? (inputMethod === 'file' ? 'Uploading...' : 'Processing...')
+                  : 'Create Note'
                 }
               </button>
             </form>

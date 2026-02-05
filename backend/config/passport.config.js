@@ -15,14 +15,28 @@ passport.use(new GoogleStrategy({
       const email = (profile.emails && profile.emails[0] && profile.emails[0].value) || '';
 
       if (!user) {
-        user = await User.create({
-          googleId: profile.id,
-          name: profile.displayName,
-          email: email,
-          avatar: avatarUrl,
-          isLoggedIn: true,
-          isAuthenticated: true
-        });
+        // If a user with the same email already exists (registered via email/password),
+        // link the Google account to that existing user instead of creating a duplicate.
+        if (email) {
+          const existingByEmail = await User.findOne({ email });
+          if (existingByEmail) {
+            existingByEmail.googleId = profile.id;
+            existingByEmail.avatar = avatarUrl || existingByEmail.avatar;
+            existingByEmail.isLoggedIn = true;
+            existingByEmail.isAuthenticated = true;
+            user = await existingByEmail.save();
+          }
+        }
+        if (!user) {
+          user = await User.create({
+            googleId: profile.id,
+            name: profile.displayName,
+            email: email,
+            avatar: avatarUrl,
+            isLoggedIn: true,
+            isAuthenticated: true
+          });
+        }
       } else {
         // Update avatar/email if changed
         let changed = false;

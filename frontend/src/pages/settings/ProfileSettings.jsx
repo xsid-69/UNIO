@@ -6,11 +6,13 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import { ChevronLeft } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 
 const ProfileSettings = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { logout: contextLogout } = useAuth();
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -22,6 +24,7 @@ const ProfileSettings = () => {
         toast.warn('Server logout failed, continuing with local logout');
       }
       dispatch(logoutUser());
+      contextLogout(); // Also update AuthContext
       navigate('/login');
     };
     doLogout();

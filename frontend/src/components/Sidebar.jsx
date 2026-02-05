@@ -4,46 +4,82 @@ import { GrResources } from "react-icons/gr";
 import { LuTrainFront } from "react-icons/lu";
 import { IoSettingsSharp } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
+import logo from "../Unitech.png";
+
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   const isLoggedIn = !!user;
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
+  // Reusable Link Component with Micro-interactions
+  const SidebarItem = ({ to, icon, label }) => (
+    <Link 
+      to={to} 
+      className="flex flex-col items-center group relative p-2"
+    >
+      <div 
+        className={`w-10 h-10 rounded-xl flex justify-center items-center mb-1.5 transition-all duration-300 relative z-10
+        ${isActive(to) 
+          ? 'bg-[var(--color-primary)] text-white shadow-[0_0_15px_rgba(19,196,163,0.4)]' 
+          : 'bg-[var(--color-surface-hover)] text-gray-400 group-hover:bg-[#334155] group-hover:text-white'
+        }`}
+      >
+        <motion.div
+           whileHover={{ scale: 1.2 }}
+           whileTap={{ scale: 0.9 }}
+        >
+          {React.cloneElement(icon, { size: 18 })}
+        </motion.div>
+      </div>
+      
+      {/* Label with scale effect */}
+       <motion.span 
+         animate={{ scale: isActive(to) ? 1.05 : 1 }}
+         className={`text-[10px] font-medium tracking-wide transition-colors ${isActive(to) ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}
+       >
+        {label}
+      </motion.span>
+      
+      {/* Active Indicator Dot */}
+      {isActive(to) && (
+        <motion.div 
+          layoutId="sidebar-active"
+          className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--color-primary)] rounded-r-lg"
+        />
+      )}
+    </Link>
+  );
 
   return (
-    <div className="flex flex-col items-center py-3 gap-8">
-      {/* Placeholder for Sidebar icons */}
-      <div className="w-15 h-15 bg-black rounded-xl mb-8"><img src="icon.png" alt="" /></div>
-      <div className="flex justify-center items-center flex-col gap-6">
-        <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/"}>
-          <button className="w-9 h-9 bg-[#3d4261] rounded-lg flex justify-center items-center" ><FaHome /></button>
-          <h2>Home</h2>
-        </Link>
-        <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/archive"}>
-          <button className="w-8 h-8 bg-[#3d4261] rounded-lg flex justify-center items-center" ><GrResources /></button>
-          <h2>Resources</h2>
-        </Link>
-        <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/ai"}>
-          <button className="w-8 h-8 bg-[#3d4261] rounded-lg flex justify-center items-center" ><LuTrainFront /></button>
-          <h2>AI Features</h2>
-        </Link>
+    <div className="flex flex-col items-center py-6 gap-6 w-full">
+      {/* Brand Icon with Pulse */}
+      <motion.div 
+        whileHover={{ rotate: 1, scale: 1.1 }}
+        className="w-16 h-16 rounded-2xl mb-6 shadow-lg flex items-center justify-center cursor-pointer"
+      >
+         <img src={logo} alt="UNITECH" className="w-18 h-18 object-contain drop-shadow-md" />
+      </motion.div>
+
+      <div className="flex flex-col gap-4 w-full items-center">
+        <SidebarItem to="/" icon={<FaHome />} label="Home" />
+        <SidebarItem to="/archive" icon={<GrResources />} label="Resources" />
+        <SidebarItem to="/ai" icon={<LuTrainFront />} label="AI" />
+        
+        <div className="w-10 h-[1px] bg-[var(--glass-border)] my-2"></div>
+
         {isLoggedIn ? (
           <>
-            <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/profilesettings"}>
-              <button className="w-8 h-8 bg-[#3d4261] rounded-lg flex justify-center items-center" ><CgProfile /></button>
-              <h2>Profile</h2>
-            </Link>
-            <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/settings"}>
-              <button className="w-8 h-8 bg-[#3d4261] rounded-lg flex justify-center items-center" ><IoSettingsSharp /></button>
-              <h2>Settings</h2>
-            </Link>
+            <SidebarItem to="/profilesettings" icon={<CgProfile />} label="Profile" />
+            <SidebarItem to="/settings" icon={<IoSettingsSharp />} label="Settings" />
           </>
         ) : (
-          <Link className='flex flex-col items-center p-2 rounded-lg hover:bg-[#3d4261]' to={"/login"}>
-            <button className="w-8 h-8 bg-[#3d4261] rounded-lg flex justify-center items-center" ><FaSignInAlt /></button>
-            <h2>Login</h2>
-          </Link>
+          <SidebarItem to="/login" icon={<FaSignInAlt />} label="Login" />
         )}
       </div>
     </div>

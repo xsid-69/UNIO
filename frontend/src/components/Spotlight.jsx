@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 
-const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 255, 255, 0.25)" }) => {
+const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(19, 196, 163, 0.15)" }) => {
   const divRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -32,14 +33,17 @@ const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 2
   };
 
   return (
-    <div
+    <motion.div
       ref={divRef}
       onMouseMove={handleMouseMove}
       onFocus={handleFocus}
       onBlur={handleBlur}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative rounded-3xl border border-neutral-800 bg-neutral-900 overflow-hidden p-8 shadow-xl shadow-neutral-950 ${className}`}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className={`relative rounded-3xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-md overflow-hidden p-8 shadow-lg hover:shadow-[var(--glass-shadow)] transition-colors duration-300 ${className}`}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
@@ -49,7 +53,7 @@ const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 2
         }}
       />
       {children}
-    </div>
+    </motion.div>
   );
 };
 

@@ -3,8 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'; // Assuming Redux for st
 import { Camera, ChevronRight } from 'lucide-react'; // Assuming lucide-react is available
 import ProfileImage from '../../components/ProfileImage'; // Assuming ProfileImage is in ../components/ProfileImage
 import { updateUserProfile } from '../../store/authSlice'; // Thunk to update user profile
-import Spinner from '../../components/Spinner';
-import axios from 'axios';
+
 import { toast } from 'react-toastify';
 
 const ProfileData = () => {
@@ -23,7 +22,6 @@ const ProfileData = () => {
   const dispatch = useDispatch();
   // Fetch user data from Redux store
   const { user: reduxUser } = useSelector((state) => state.auth) || {};
-  console.log("Redux User:", reduxUser); // Log Redux user data to check if it's populated
 
   // Use placeholder data if reduxUser is not available, and include years/semesters for pre-filling
   const user = reduxUser || {
@@ -88,7 +86,7 @@ const ProfileData = () => {
 
     // Filter out empty values before dispatching.
     const dataToSend = Object.fromEntries(
-      Object.entries(updatedUserData).filter(([key, value]) => value !== '')
+      Object.entries(updatedUserData).filter(([, value]) => value !== '')
     );
 
     if (!reduxUser) {
@@ -330,7 +328,7 @@ const ProfileData = () => {
           >
             <ChevronRight size={20} /> {/* Using ChevronRight as in the image's update button */}
             {submitting ? (
-              <span className="inline-flex items-center gap-2"><Spinner size={0.9} thickness={2} speed={700} />Updating...</span>
+              <span className="inline-flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>Updating...</span>
             ) : (
               'Update'
             )}

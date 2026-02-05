@@ -7,7 +7,11 @@ const SubjectsPage = () => {
   const { user } = useSelector((state) => state.auth);
 
   return (
-    <div className="container mx-auto p-4">
+    <div
+      id='subjectsss'
+      className="container mx-auto p-4 overflow-y-auto scrollbar-hide"
+      style={{ maxHeight: 'calc(100vh - 6rem)' }}
+    >
       {/* Page title */}
       <h1 className="text-2xl font-bold mb-4 text-white">Your Subjects</h1>
 
