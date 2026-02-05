@@ -23,6 +23,7 @@ const AuthSucess = () => {
           const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
 
           if (res.data && res.data.user) {
+            localStorage.setItem('token', token); // Store token as requested
             dispatch(loadUser({ user: res.data.user, token }));
             toast.success('Logged in successfully');
             navigate('/'); // Redirect to home page on successful authentication
