@@ -18,6 +18,15 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+      window.location.replace("/dashboard");
+    }
+  }, []);
+
+  useEffect(() => {
     const initializeAuth = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);

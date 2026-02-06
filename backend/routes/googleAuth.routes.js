@@ -25,7 +25,7 @@ Grouter.get('/google/callback',
             cookieOptions.secure = false;
         }
         res.cookie("token" , token , cookieOptions);
-        res.redirect(`${process.env.FRONTEND_URL}/login/success?token=${token}`); // Redirect to frontend success page
+        res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`); // Redirect to frontend root with token
      } catch (error) {
         console.error('Error generating JWT:', error);
         res.redirect(`${process.env.FRONTEND_URL}/login?error=Authentication%20failed`);
