@@ -29,9 +29,14 @@ const App = () => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+        
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`);
         if (response.data && response.data.user) {
-          dispatch(loadUser({ user: response.data.user, token: localStorage.getItem('token') }));
+          dispatch(loadUser({ user: response.data.user, token: token || localStorage.getItem('token') }));
         }
       } catch (error) {
         console.error("Failed to initialize auth state:", error);
@@ -39,6 +44,7 @@ const App = () => {
         
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
       } finally {
         // Add a delay before setting isLoading to false
         setTimeout(() => {
