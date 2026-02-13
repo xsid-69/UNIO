@@ -149,52 +149,99 @@ The application should now be running at `http://localhost:5173` (or the port sp
 
 ### Directory Structure
 
-- **Backend** (`/backend`)
-  - `server.js`: Entry point for the Express application.
-  - `controllers/`: Business logic for API requests.
-  - `models/`: Mongoose schemas.
-  - `routes/`: API route definitions.
-  - `middlewares/`: Authentication and error handling.
-
-- **Frontend** (`/frontend`)
-  - `src/components/`: Reusable UI components.
-  - `src/pages/`: Application views.
-  - `src/store/`: Redux state management.
-  - `src/routes/`: Routing logic.
+```bash
+UNIO
+├── backend
+│   ├── config/             # Database & other configurations
+│   ├── controller/         # Request handlers (Business Logic)
+│   ├── db/                 # Database connection logic
+│   ├── middlewares/        # Auth & Error handling middlewares
+│   ├── models/             # Mongoose Schemas (Data Models)
+│   ├── routes/             # API Route definitions
+│   ├── service/            # Helper services (e.g., ImageKit)
+│   ├── src/                # Additional source files
+│   ├── .env                # Environment variables
+│   └── Server.js           # Entry point for Backend
+│
+└── frontend
+    ├── public/             # Static assets
+    ├── src
+    │   ├── components/     # Reusable UI Components
+    │   ├── context/        # Context API (if used)
+    │   ├── lib/            # Utility libraries
+    │   ├── pages/          # Full Page Components
+    │   ├── routes/         # Routing definition (AppRoutes)
+    │   ├── store/          # Redux Store slices & setup
+    │   ├── App.jsx         # Main App Component
+    │   └── main.jsx        # Entry point for React
+    ├── .env                # Frontend Environment variables
+    ├── index.html          # HTML Template
+    ├── tailwind.config.js  # Tailwind CSS Config
+    └── vite.config.js      # Vite Config
+```
 
 ### Architecture & Flow
 
-1.  **Frontend (Client)**: Built with **React (Vite)** and **Tailwind CSS**. It sends HTTP requests via **Axios** to the backend. State is managed by **Redux Toolkit**.
-2.  **Backend (Server)**: **Node.js** & **Express** server handling REST API requests. It flows from `Routes` -> `Controllers` -> `Services/Models`.
-3.  **Database**: **MongoDB** stores data defined by **Mongoose** schemas.
-4.  **Authentication**: Uses **JWT** for sessions and **Passport.js** for Google OAuth.
-5.  **External Services**: **ImageKit** for file storage.
+```text
+[ Client (Frontend) ]
+       |
+       | (HTTP / Axios)
+       v
+[ Server (Backend) ]
+       |
+       +---> [ Routes ]
+       |        |
+       |        v
+       +---> [ Controllers ]
+       |        |
+       |        v
+       +---> [ Services / Models ]
+                |
+                v
+          [ MongoDB ]
+```
+
+1.  **Frontend**: React + Vite + Tailwind CSS. Manages state via Redux Toolkit.
+2.  **API Layer**: Express.js REST API.
+3.  **Authentication**: JWT for sessions, Passport.js for Google OAuth.
+4.  **Database**: MongoDB (Mongoose).
+5.  **Storage**: ImageKit for file uploads.
 
 ### 🗄️ Database Schema
 
-#### User Model
+#### 👤 User Model (`users`)
 
-- **name**: String
-- **email**: String (Unique)
-- **password**: String
-- **googleId**: String
-- **role**: Enum ['user', 'admin']
-- **details**: branch, year, semester
-- **profile** : profilePic, avatar
+| Field        | Type   | Required | Unique | Description                      |
+| :----------- | :----- | :------- | :----- | :------------------------------- |
+| `name`       | String | False    | True   | Full name of the user            |
+| `email`      | String | True     | True   | User's email address             |
+| `password`   | String | False    | False  | Hashed password (if manual auth) |
+| `googleId`   | String | False    | False  | Google OAuth ID                  |
+| `role`       | String | False    | False  | `user` (default) or `admin`      |
+| `branch`     | String | False    | False  | Student's branch (e.g., CSE)     |
+| `year`       | String | False    | False  | Academic Year                    |
+| `semester`   | String | False    | False  | Current Semester                 |
+| `profilePic` | String | False    | False  | URL for profile picture          |
+| `avatar`     | String | False    | False  | Avatar identifier                |
 
-#### Subject Model
+#### 📚 Subject Model (`subjectsData`)
 
-- **name**: String
-- **branch**: String
-- **semester**: Number
+| Field      | Type   | Required | Description                        |
+| :--------- | :----- | :------- | :--------------------------------- |
+| `name`     | String | True     | Name of the subject                |
+| `branch`   | String | True     | Branch associated with the subject |
+| `semester` | Number | True     | Semester number                    |
 
-#### Note Model
+#### 📝 Note Model (`notes`)
 
-- **title**: String
-- **description**: String
-- **subject**: String
-- **pdfUrl**: String (Link to resource)
-- **metadata**: branch, semester
+| Field         | Type   | Required | Index | Description             |
+| :------------ | :----- | :------- | :---- | :---------------------- |
+| `title`       | String | True     | False | Title of the note       |
+| `description` | String | False    | False | Brief description       |
+| `subject`     | String | False    | True  | Related Subject         |
+| `branch`      | String | False    | True  | Branch filter           |
+| `semester`    | String | False    | True  | Semester filter         |
+| `pdfUrl`      | String | False    | False | URL to the PDF resource |
 
 ---
 
