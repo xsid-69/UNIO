@@ -145,6 +145,59 @@ The application should now be running at `http://localhost:5173` (or the port sp
 
 ---
 
+## 🏗️ Project Structure & Architecture
+
+### Directory Structure
+
+- **Backend** (`/backend`)
+  - `server.js`: Entry point for the Express application.
+  - `controllers/`: Business logic for API requests.
+  - `models/`: Mongoose schemas.
+  - `routes/`: API route definitions.
+  - `middlewares/`: Authentication and error handling.
+
+- **Frontend** (`/frontend`)
+  - `src/components/`: Reusable UI components.
+  - `src/pages/`: Application views.
+  - `src/store/`: Redux state management.
+  - `src/routes/`: Routing logic.
+
+### Architecture & Flow
+
+1.  **Frontend (Client)**: Built with **React (Vite)** and **Tailwind CSS**. It sends HTTP requests via **Axios** to the backend. State is managed by **Redux Toolkit**.
+2.  **Backend (Server)**: **Node.js** & **Express** server handling REST API requests. It flows from `Routes` -> `Controllers` -> `Services/Models`.
+3.  **Database**: **MongoDB** stores data defined by **Mongoose** schemas.
+4.  **Authentication**: Uses **JWT** for sessions and **Passport.js** for Google OAuth.
+5.  **External Services**: **ImageKit** for file storage.
+
+### 🗄️ Database Schema
+
+#### User Model
+
+- **name**: String
+- **email**: String (Unique)
+- **password**: String
+- **googleId**: String
+- **role**: Enum ['user', 'admin']
+- **details**: branch, year, semester
+- **profile** : profilePic, avatar
+
+#### Subject Model
+
+- **name**: String
+- **branch**: String
+- **semester**: Number
+
+#### Note Model
+
+- **title**: String
+- **description**: String
+- **subject**: String
+- **pdfUrl**: String (Link to resource)
+- **metadata**: branch, semester
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License.
