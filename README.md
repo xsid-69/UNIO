@@ -1,4 +1,4 @@
-# UNIO - Educational Resource & Management Platform
+# UNITECH - Educational Resource & Management Platform
 
 UNIO is a cutting-edge educational platform designed to bridge the gap between students and academic resources. It provides a seamless interface for accessing study materials, managing academic progress, and leveraging AI to enhance the learning experience. Built with a modern tech stack, UNIO ensures a fast, responsive, and intuitive user experience for both students and administrators.
 
