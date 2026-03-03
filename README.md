@@ -62,13 +62,11 @@ UNIO is a cutting-edge educational platform designed to bridge the gap between s
 
 ## � Screenshots
 
-|                              Landing Page                              |                            Dashboard                             |
+|                              Dashboard                                 |                              Ai assistant                        |
 | :--------------------------------------------------------------------: | :--------------------------------------------------------------: |
 | ![Landing Page](https://via.placeholder.com/600x400?text=Landing+Page) | ![Dashboard](https://via.placeholder.com/600x400?text=Dashboard) |
 
-|                            Resources View                             |                              AI Assistant                              |
-| :-------------------------------------------------------------------: | :--------------------------------------------------------------------: |
-| ![Resources](https://via.placeholder.com/600x400?text=Resources+Page) | ![AI Assistant](https://via.placeholder.com/600x400?text=AI+Assistant) |
+
 
 ---
 
