@@ -46,10 +46,12 @@ async function registerController(req , res ) {
 
     const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, getAuthCookieOptions());
+    res.setHeader('Cache-Control', 'no-store');
 
     return res.status(201).json({
         message:"User registered successfully",
-        user
+        user,
+        token
     })
 }
 
@@ -83,9 +85,11 @@ async function logincontroller(req , res){
     }
     const token = jwt.sign({id:user._id} , process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, getAuthCookieOptions());
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
         message: "Login successful",
-        user
+        user,
+        token
     })
 }
 

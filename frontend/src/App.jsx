@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import AppRoutes from './routes/AppRoutes';
 import MotionProvider from './components/MotionProvider';
 import { loadUser } from './store/authSlice';
+import { clearSessionToken, restoreSessionToken } from './lib/auth-session';
 
 axios.defaults.withCredentials = true;
 
@@ -30,12 +31,21 @@ const App = () => {
     const controller = new AbortController();
     const initialize = async () => {
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common.Authorization;
+      localStorage.removeItem('user');
+
+      const hasOAuthExchange = window.location.pathname === '/login/success'
+        && new URLSearchParams(window.location.search).has('code');
+      if (hasOAuthExchange) {
+        setLoading(false);
+        return;
+      }
+
+      restoreSessionToken();
       try {
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { signal: controller.signal });
-        if (response.data?.user) dispatch(loadUser({ user: response.data.user, token: null }));
+        if (response.data?.user) dispatch(loadUser({ user: response.data.user }));
       } catch (requestError) {
-        if (requestError.code !== 'ERR_CANCELED') localStorage.removeItem('user');
+        if (requestError.code !== 'ERR_CANCELED') clearSessionToken();
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }

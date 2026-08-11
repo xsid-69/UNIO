@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { clearSessionToken, setSessionToken } from '../lib/auth-session';
 
 const getErrorMessage = (error) => error.response?.data?.message || error.message || 'Request failed';
 
@@ -13,6 +14,7 @@ export const registerUser = createAsyncThunk(
       formData.append('password', userData.password);
       if (userData.profilePic?.[0]) formData.append('profilePic', userData.profilePic[0]);
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, formData);
+      setSessionToken(response.data?.token);
       return response.data;
     } catch (error) {
       return rejectWithValue(getErrorMessage(error));
@@ -25,6 +27,7 @@ export const loginUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, userData);
+      setSessionToken(response.data?.token);
       return response.data;
     } catch (error) {
       return rejectWithValue(getErrorMessage(error));
@@ -55,9 +58,7 @@ const authSlice = createSlice({
     logoutUser: (state) => {
       state.user = null;
       state.error = null;
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common.Authorization;
+      clearSessionToken();
     },
   },
   extraReducers: (builder) => {

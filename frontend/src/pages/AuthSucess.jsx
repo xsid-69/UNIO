@@ -5,23 +5,37 @@ import { CircleNotch, ShieldCheck } from '@phosphor-icons/react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { loadUser } from '../store/authSlice';
+import { clearSessionToken, setSessionToken } from '../lib/auth-session';
 import BrandMark from '../components/ui/BrandMark';
 
 const AuthSucess = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const exchangeCode = new URLSearchParams(window.location.search).get('code');
 
   useEffect(() => {
     const controller = new AbortController();
     const handleAuth = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { signal: controller.signal });
+        const response = exchangeCode
+          ? await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/auth/google/exchange`,
+            { code: exchangeCode },
+            { signal: controller.signal },
+          )
+          : await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { signal: controller.signal });
+
+        if (exchangeCode && !setSessionToken(response.data?.token)) {
+          throw new Error('Session token was not returned');
+        }
         if (!response.data?.user) throw new Error('Authenticated user was not returned');
-        dispatch(loadUser({ user: response.data.user, token: null }));
+
+        dispatch(loadUser({ user: response.data.user }));
         toast.success('Logged in successfully');
         navigate('/', { replace: true });
       } catch (error) {
         if (error.code === 'ERR_CANCELED') return;
+        clearSessionToken();
         toast.error('Authentication failed');
         navigate('/login?error=Authentication%20failed', { replace: true });
       }
@@ -29,7 +43,7 @@ const AuthSucess = () => {
 
     void handleAuth();
     return () => controller.abort();
-  }, [dispatch, navigate]);
+  }, [dispatch, exchangeCode, navigate]);
 
   return (
     <main className="auth-shell">
