@@ -10,12 +10,13 @@ import googleAuthRouter from '../routes/googleAuth.routes.js';
 import resourcesRouter from '../routes/resources.routes.js';
 import notesRouter from '../routes/notes.routes.js';
 import subjectsRouter from '../routes/subjects.routes.js';
+import { isProductionDeployment } from '../config/env.js';
 
 const app = express();
 const allowedOrigins = [process.env.FRONTEND_URL, process.env.BACKEND_URL, ...(process.env.CORS_ORIGINS || '').split(',')]
   .map((origin) => origin?.trim().replace(/\/$/, '')).filter(Boolean);
 
-if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
+if (isProductionDeployment()) app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(cors({
   origin(origin, callback) {

@@ -115,7 +115,7 @@ The backend exposes `GET /api/health`. It reports `200` only when MongoDB is con
 
 1. Deploy the backend with all required production environment variables and `NODE_ENV=production`.
 2. Deploy `frontend/dist` after running `npm run build` with the production `VITE_BACKEND_URL`.
-3. Configure SPA rewrites to serve `index.html` for unknown frontend routes. A Netlify/Render-compatible `_redirects` file is included.
+3. Configure the host to rewrite `/*` to `/index.html` with a `200` response. On Render, add this rule in the static site's **Redirects/Rewrites** settings; `_redirects` is included for hosts that support that file format. The bundled `404.html` also restores deep links as a fallback.
 4. Add `${BACKEND_URL}/api/auth/google/callback` to Google OAuth’s authorized redirect URIs.
 5. Add the exact frontend and backend origins to Google’s authorized JavaScript origins where applicable.
 6. Keep frontend and backend URLs on HTTPS. Cross-site session cookies use `Secure`, `HttpOnly`, and `SameSite=None` in production.

@@ -4,6 +4,16 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const apiUrl = env.VITE_BACKEND_URL?.trim();
+
+  if (mode === 'production' && env.RENDER === 'true') {
+    if (!apiUrl) throw new Error('VITE_BACKEND_URL is required for a Render production build');
+    const parsedApiUrl = new URL(apiUrl);
+    if (parsedApiUrl.protocol !== 'https:' || parsedApiUrl.origin !== apiUrl.replace(/\/+$/, '')) {
+      throw new Error('VITE_BACKEND_URL must be an HTTPS origin without a path in production');
+    }
+  }
+
   return {
     plugins: [react(), tailwindcss()],
     server: {
