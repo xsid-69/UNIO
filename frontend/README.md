@@ -1,12 +1,16 @@
-# React + Vite
+# UNIO Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend is the React/Vite client for the UNIO university study workspace.
 
-Currently, two official plugins are available:
+See the [project README](../README.md) for features, screenshots, complete setup, environment variables, and production deployment requirements.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Commands
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The local development server uses `http://localhost:5173` and reads the API origin from `VITE_BACKEND_URL`.

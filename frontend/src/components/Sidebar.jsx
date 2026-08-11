@@ -1,89 +1,29 @@
-import React from 'react';
-import { FaHome, FaSignInAlt } from "react-icons/fa";
-import { GrResources } from "react-icons/gr";
-import { LuTrainFront } from "react-icons/lu";
-import { IoSettingsSharp } from "react-icons/io5";
-import { CgProfile } from "react-icons/cg";
+import { createElement } from 'react';
+import { Books, Gear, House, SignIn, Sparkle, UploadSimple, UserCircle } from '@phosphor-icons/react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import logo from "../Unitech.png";
+import BrandMark from './ui/BrandMark';
+import ProfileImage from './ProfileImage';
 
+const items = [
+  { to: '/', label: 'Today', icon: House, matches: ['/'] },
+  { to: '/archive', label: 'Study library', icon: Books, matches: ['/archive', '/notespage', '/pyqspage', '/solvedqpage', '/syllabus', '/subjects'] },
+  { to: '/ai', label: 'Study AI', icon: Sparkle, matches: ['/ai'] },
+];
 
-const Sidebar = () => {
+const Sidebar = ({ onCreateNote }) => {
   const { user } = useSelector((state) => state.auth);
-  const isLoggedIn = !!user;
-  const location = useLocation();
-
-  const isActive = (path) => location.pathname === path;
-
-  // Reusable Link Component with Micro-interactions
-  const SidebarItem = ({ to, icon, label }) => (
-    <Link 
-      to={to} 
-      className="flex flex-col items-center group relative p-2"
-    >
-      <div 
-        className={`w-10 h-10 rounded-xl flex justify-center items-center mb-1.5 transition-all duration-300 relative z-10
-        ${isActive(to) 
-          ? 'bg-[var(--color-primary)] text-white shadow-[0_0_15px_rgba(19,196,163,0.4)]' 
-          : 'bg-[var(--color-surface-hover)] text-gray-400 group-hover:bg-[#334155] group-hover:text-white'
-        }`}
-      >
-        <motion.div
-           whileHover={{ scale: 1.2 }}
-           whileTap={{ scale: 0.9 }}
-        >
-          {React.cloneElement(icon, { size: 18 })}
-        </motion.div>
-      </div>
-      
-      {/* Label with scale effect */}
-       <motion.span 
-         animate={{ scale: isActive(to) ? 1.05 : 1 }}
-         className={`text-[10px] font-medium tracking-wide transition-colors ${isActive(to) ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}
-       >
-        {label}
-      </motion.span>
-      
-      {/* Active Indicator Dot */}
-      {isActive(to) && (
-        <motion.div 
-          layoutId="sidebar-active"
-          className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--color-primary)] rounded-r-lg"
-        />
-      )}
-    </Link>
-  );
-
-  return (
-    <div className="flex flex-col items-center py-6 gap-6 w-full">
-      {/* Brand Icon with Pulse */}
-      <motion.div 
-        whileHover={{ rotate: 1, scale: 1.1 }}
-        className="w-16 h-16 rounded-2xl mb-6 shadow-lg flex items-center justify-center cursor-pointer"
-      >
-         <img src={logo} alt="UNITECH" className="w-18 h-18 object-contain drop-shadow-md" />
-      </motion.div>
-
-      <div className="flex flex-col gap-4 w-full items-center">
-        <SidebarItem to="/" icon={<FaHome />} label="Home" />
-        <SidebarItem to="/archive" icon={<GrResources />} label="Resources" />
-        <SidebarItem to="/ai" icon={<LuTrainFront />} label="AI" />
-        
-        <div className="w-10 h-[1px] bg-[var(--glass-border)] my-2"></div>
-
-        {isLoggedIn ? (
-          <>
-            <SidebarItem to="/profilesettings" icon={<CgProfile />} label="Profile" />
-            <SidebarItem to="/settings" icon={<IoSettingsSharp />} label="Settings" />
-          </>
-        ) : (
-          <SidebarItem to="/login" icon={<FaSignInAlt />} label="Login" />
-        )}
-      </div>
-    </div>
-  );
+  const { pathname } = useLocation();
+  const active = (item) => item.matches.some((path) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`));
+  const navLink = (item) => <Link to={item.to} key={item.to} className={`nav-item ${active(item) ? 'is-active' : ''}`} aria-current={active(item) ? 'page' : undefined}>{createElement(item.icon, { size: 20, weight: active(item) ? 'fill' : 'regular', 'aria-hidden': true })}<span>{item.label}</span></Link>;
+  const accountItem = user ? { to: '/profile', label: 'My profile', icon: UserCircle, matches: ['/profile', '/profiledata', '/profilesettings'] } : { to: '/login', label: 'Sign in', icon: SignIn, matches: ['/login', '/register'] };
+  const settingsItem = { to: '/settings', label: 'Settings', icon: Gear, matches: ['/settings'] };
+  return <>
+    <div className="app-sidebar__brand"><BrandMark /></div>
+    <div className="nav-section-label">Workspace</div>
+    <nav className="app-sidebar__nav">{items.map(navLink)}<div className="nav-divider" />{navLink(accountItem)}{navLink(settingsItem)}{user?.isAdmin && <button type="button" className="nav-item nav-item--button" onClick={onCreateNote}><UploadSimple size={20} /><span>Publish material</span></button>}</nav>
+    <div className="app-sidebar__footer">{user ? <Link to="/profile" className="mini-profile"><ProfileImage src={user.profilePic || user.avatar} size="sm" /><span className="mini-profile__copy"><strong>{user.name}</strong><span>{user.branch ? `${user.branch} · Sem ${user.semester || '—'}` : 'Complete academic profile'}</span></span></Link> : <Link to="/login" className="btn-primary sidebar-signin">Start studying</Link>}</div>
+  </>;
 };
 
 export default Sidebar;

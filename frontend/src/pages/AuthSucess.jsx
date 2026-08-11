@@ -1,67 +1,65 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { CircleNotch, ShieldCheck } from '@phosphor-icons/react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { loadUser } from '../store/authSlice'; // Import loadUser action
-import Spinner from '../components/Spinner';
+import { loadUser } from '../store/authSlice';
+import BrandMark from '../components/ui/BrandMark';
 
 const AuthSucess = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    const controller = new AbortController();
     const handleAuth = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
-
-      if (token) {
-        try {
-          // Use the token from URL to fetch user details, ensuring reliable auth even if cookies fail
-          const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (res.data && res.data.user) {
-            localStorage.setItem('token', token); // Store token as requested
-            dispatch(loadUser({ user: res.data.user, token }));
-            toast.success('Logged in successfully');
-            navigate('/'); // Redirect to home page on successful authentication
-          } else {
-            console.error('Failed to fetch user data: No user in response', res.data);
-            toast.error('Authentication failed');
-            navigate('/login?error=Authentication%20failed');
-          }
-        } catch (error) {
-          console.error('Failed to fetch user data or authenticate', error);
-          toast.error('Authentication failed');
-          navigate('/login?error=Authentication%20failed');
-        }
-      } else {
-        // If no token, redirect to login
-        navigate('/login');
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { signal: controller.signal });
+        if (!response.data?.user) throw new Error('Authenticated user was not returned');
+        dispatch(loadUser({ user: response.data.user, token: null }));
+        toast.success('Logged in successfully');
+        navigate('/', { replace: true });
+      } catch (error) {
+        if (error.code === 'ERR_CANCELED') return;
+        toast.error('Authentication failed');
+        navigate('/login?error=Authentication%20failed', { replace: true });
       }
     };
 
-    handleAuth();
+    void handleAuth();
+    return () => controller.abort();
   }, [dispatch, navigate]);
 
-  // Optional: You can still use the loading/error state from Redux if needed for display
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner size={2} />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="text-gray-300">Processing authentication...</div>
-    </div>
+    <main className="auth-shell">
+      <section className="auth-story" aria-labelledby="auth-story-title">
+        <BrandMark />
+        <div className="auth-story__copy">
+          <h1 id="auth-story-title">Your workspace is almost ready.</h1>
+          <p>
+            We are securely connecting your Google account and preparing your
+            personalised UNIO study space.
+          </p>
+        </div>
+        <div className="relative z-[1] flex items-center gap-3 text-[var(--color-text-muted)]">
+          <ShieldCheck size={24} weight="duotone" className="text-[var(--color-primary)]" aria-hidden="true" />
+          <span>Secure account verification</span>
+        </div>
+      </section>
+
+      <section className="auth-panel" aria-labelledby="auth-status-title">
+        <div className="auth-form text-center" role="status" aria-live="polite" aria-atomic="true">
+          <div className="state-panel">
+            <span className="state-panel__icon" aria-hidden="true">
+              <CircleNotch size={28} weight="bold" className="is-spinning" />
+            </span>
+            <h2 id="auth-status-title">Signing you in</h2>
+            <p>Please wait while we finish authenticating your account.</p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 };
 

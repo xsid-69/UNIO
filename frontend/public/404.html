@@ -1,8 +1,13 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=/" />
+    <meta name="robots" content="noindex" />
+    <title>Opening UNIO…</title>
+    <script>
+      sessionStorage.setItem('unio:redirect', window.location.href);
+      window.location.replace('/');
+    </script>
   </head>
-  <body></body>
+  <body>Opening UNIO…</body>
 </html>

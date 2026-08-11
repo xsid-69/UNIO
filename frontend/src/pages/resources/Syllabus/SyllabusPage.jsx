@@ -1,308 +1,213 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowSquareOut, CaretLeft, CaretRight, DownloadSimple, FilePdf, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from '@phosphor-icons/react';
 import { useSelector } from 'react-redux';
-
-// react-pdf imports (top-level)
+import axios from 'axios';
 import { Document, Page, pdfjs } from 'react-pdf';
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
-import Spinner from '../../../components/Spinner';
+import { toast } from 'react-toastify';
+import PageHeader from '../../../components/ui/PageHeader';
+import StatePanel from '../../../components/ui/StatePanel';
+import { createValidatedPdfBlob, getDirectPdfUrl, getPdfFileName, PDF_WORKER_SRC } from '../../../lib/pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+
+const getFileId = (file) => file?.filePath || file?.url || file?.name || '';
+const isAvailable = (file) => Boolean(file?.filePath || file?.url);
 
 const SyllabusPage = () => {
-  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const objectUrlRef = useRef('');
+  const selectedIdRef = useRef('');
+  const previewRequestRef = useRef(null);
+  const filesRequestIdRef = useRef(0);
+  const mountedRef = useRef(false);
+  const viewportRef = useRef(null);
   const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
-
-  // PDF viewer state
-  const [numPages, setNumPages] = useState(null);
+  const [openingId, setOpeningId] = useState('');
+  const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
-  const [pdfLoadError, setPdfLoadError] = useState(false);
-  const [pdfAutoOpened, setPdfAutoOpened] = useState(false);
-  const [docLoading, setDocLoading] = useState(false);
-  const [pageRendering, setPageRendering] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [viewportWidth, setViewportWidth] = useState(760);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [pdfError, setPdfError] = useState('');
+  const [renderMode, setRenderMode] = useState('pdfjs');
+  const [previewAttempt, setPreviewAttempt] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // Watermark text state (updates to include timestamp)
-  const [watermarkText, setWatermarkText] = useState('');
+  const revokeObjectUrl = useCallback(() => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    objectUrlRef.current = '';
+  }, []);
 
-  const handleGoBack = () => navigate(-1);
+  const openFile = useCallback(async (file, { force = false } = {}) => {
+    if (!isAvailable(file)) return;
+    const id = getFileId(file);
+    if (!force && selectedIdRef.current === id && objectUrlRef.current) return;
+    if (!force && previewRequestRef.current?.id === id) return previewRequestRef.current.promise;
 
-  useEffect(() => {
-    const fetchFiles = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const branchParam = (user && user.branch) || null;
-        const url = branchParam
-          ? `${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus?branch=${encodeURIComponent(branchParam)}`
-          : `${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus`;
+    previewRequestRef.current?.controller.abort();
+    const controller = new AbortController();
+    const request = { id, controller, promise: null };
+    previewRequestRef.current = request;
+    revokeObjectUrl();
+    selectedIdRef.current = id;
 
-        const res = await axios.get(url);
-        if (res.data && res.data.files) setFiles(res.data.files);
-        else setFiles([]);
-      } catch (err) {
-        console.error('Failed to fetch syllabus files', err);
-        setError('Failed to load syllabus');
-        toast.error('Failed to load syllabus files');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFiles();
-  }, [user]);
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
-    setPageNumber(1);
-    setDocLoading(false);
-  };
-
-  const onDocumentLoadError = (err) => {
-    console.error('PDF document load error', err);
-    setPdfLoadError(true);
-    setDocLoading(false);
-    toast.error('Unable to load PDF preview. Opening in new tab.');
-  };
-
-  const onPageRenderSuccess = () => {
-    setPageRendering(false);
-  };
-
-  // When preview fails, auto-open the PDF in a new tab once (avoid repeated popups)
-  useEffect(() => {
-    if (pdfLoadError && selectedFile && !pdfAutoOpened) {
-      try {
-        window.open(selectedFile.url, '_blank', 'noopener,noreferrer');
-        setPdfAutoOpened(true);
-        toast.info('Opened PDF in a new tab');
-      } catch (e) {
-        console.warn('Auto-open failed', e);
-      }
+    if (mountedRef.current) {
+      setSelectedFile({ ...file, previewUrl: '' });
+      setOpeningId(id);
+      setPdfError('');
+      setRenderMode('pdfjs');
+      setDocumentLoading(true);
+      setNumPages(0);
+      setPageNumber(1);
+      setScale(1);
     }
-  }, [pdfLoadError, selectedFile, pdfAutoOpened]);
 
-  // Watermark updater: create watermark text containing user info + timestamp
-  useEffect(() => {
-    const buildText = () => {
-      const id = (user && (user.name || user.email)) || 'UNIO';
-      const ts = new Date().toLocaleString();
-      return `${id} • ${ts}`;
-    };
-
-    setWatermarkText(buildText());
-    const iv = setInterval(() => setWatermarkText(buildText()), 15000); // update every 15s
-    return () => clearInterval(iv);
-  }, [user]);
-
-  // Prevent certain keys (Ctrl+P, Ctrl+S, F12, Ctrl+Shift+I) while viewer is open
-  useEffect(() => {
-    const handler = (e) => {
-      if (!selectedFile) return;
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
-      // Block Print, Save, DevTools
-      if (ctrlKey && (e.key === 'p' || e.key === 's')) {
-        e.preventDefault();
-        toast.info('This action is disabled while viewing protected content');
+    request.promise = axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus/file`, {
+      params: file.filePath ? { filePath: file.filePath } : { url: file.url },
+      responseType: 'arraybuffer',
+      signal: controller.signal,
+    }).then(async (response) => {
+      const blob = await createValidatedPdfBlob(response.data);
+      if (!mountedRef.current || previewRequestRef.current !== request) return;
+      const objectUrl = URL.createObjectURL(blob);
+      objectUrlRef.current = objectUrl;
+      setSelectedFile({ ...file, previewUrl: objectUrl });
+      setPreviewAttempt((attempt) => attempt + 1);
+    }).catch((requestError) => {
+      if (requestError.code === 'ERR_CANCELED' || !mountedRef.current || previewRequestRef.current !== request) return;
+      const directSource = getDirectPdfUrl(file.url || '');
+      setDocumentLoading(false);
+      if (directSource) {
+        setSelectedFile({ ...file, previewUrl: directSource });
+        setRenderMode('native');
+        setPdfError('The enhanced preview was unavailable, so UNIO opened the original PDF in your browser viewer.');
+      } else {
+        setRenderMode('error');
+        setPdfError(requestError.message || 'The syllabus PDF could not be prepared.');
+        toast.error('The PDF preview could not be prepared.');
       }
-      if (e.key === 'F12' || (ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')) {
-        e.preventDefault();
-        toast.info('This action is disabled while viewing protected content');
+    }).finally(() => {
+      if (previewRequestRef.current === request) {
+        previewRequestRef.current = null;
+        if (mountedRef.current) setOpeningId('');
       }
-      // Prevent PrintScreen cannot be blocked reliably
+    });
+
+    return request.promise;
+  }, [revokeObjectUrl]);
+
+  const closePreview = useCallback(() => {
+    previewRequestRef.current?.controller.abort();
+    previewRequestRef.current = null;
+    selectedIdRef.current = '';
+    revokeObjectUrl();
+    setSelectedFile(null);
+    setPdfError('');
+    setRenderMode('pdfjs');
+    setDocumentLoading(false);
+  }, [revokeObjectUrl]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      previewRequestRef.current?.controller.abort();
+      previewRequestRef.current = null;
+      revokeObjectUrl();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+  }, [revokeObjectUrl]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const requestId = filesRequestIdRef.current + 1;
+    filesRequestIdRef.current = requestId;
+    setLoading(true);
+    setError('');
+
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus`, {
+      params: user?.branch ? { branch: user.branch } : {},
+      signal: controller.signal,
+    }).then((response) => {
+      if (!mountedRef.current || filesRequestIdRef.current !== requestId) return;
+      const list = Array.isArray(response.data?.files) ? response.data.files : [];
+      setFiles(list);
+      const firstAvailable = list.find(isAvailable);
+      if (firstAvailable) void openFile(firstAvailable);
+      else closePreview();
+    }).catch((requestError) => {
+      if (requestError.code !== 'ERR_CANCELED' && mountedRef.current && filesRequestIdRef.current === requestId) {
+        setError(requestError.response?.status === 401 ? 'Sign in to view your branch syllabus.' : 'The syllabus library could not be loaded.');
+      }
+    }).finally(() => {
+      if (mountedRef.current && filesRequestIdRef.current === requestId) setLoading(false);
+    });
+
+    return () => controller.abort();
+  }, [closePreview, openFile, reloadKey, user?.branch]);
+
+  useEffect(() => {
+    if (!viewportRef.current || !selectedFile) return undefined;
+    const observer = new ResizeObserver(([entry]) => setViewportWidth(entry.contentRect.width));
+    observer.observe(viewportRef.current);
+    return () => observer.disconnect();
   }, [selectedFile]);
 
-  // Watermark overlay component (renders a grid of rotated watermark texts)
-  const WatermarkOverlay = ({ text }) => {
-    if (!text) return null;
-    const rows = 6;
-    const cols = 4;
-    const items = [];
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        const key = `wm-${r}-${c}`;
-        const top = (r / rows) * 100 + Math.random() * 6 - 3; // slight jitter
-        const left = (c / cols) * 100 + Math.random() * 10 - 5;
-        const size = 20 + (Math.abs((r - rows / 2)) + Math.abs((c - cols / 2))) * 1; // vary size
-        items.push(
-          <div
-            key={key}
-            style={{
-              position: 'absolute',
-              top: `${top}%`,
-              left: `${left}%`,
-              transform: 'translate(-50%, -50%) rotate(-25deg)',
-              opacity: 0.08,
-              color: '#ffffff',
-              fontSize: `${size}px`,
-              pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
-              mixBlendMode: 'normal',
-            }}
-          >
-            {text}
-          </div>
-        );
-      }
-    }
-
-    return (
-      <div style={{ position: 'absolute', inset: 0, zIndex: 60, pointerEvents: 'none' }} aria-hidden>
-        {items}
-      </div>
-    );
+  const retryPreview = () => {
+    if (selectedFile) void openFile(selectedFile, { force: true });
   };
+  const switchToNativeFallback = (message) => {
+    setDocumentLoading(false);
+    setPdfError(message);
+    setRenderMode('native');
+    setNumPages(0);
+  };
+  const watermark = user?.name || user?.email || 'UNIO student';
+  const nativeMode = renderMode === 'native';
+  const selectedDownloadUrl = selectedFile?.previewUrl || getDirectPdfUrl(selectedFile?.url || '');
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-start mb-6">
-        <Link to="#" onClick={handleGoBack} className="text-gray-400">
-          <ChevronLeft size={24} />
-        </Link>
-        <h1 className="ml-4 text-2xl font-semibold">Syllabus</h1>
-      </div>
-
-      {loading && (
-        <div className="flex items-center gap-3 text-gray-400">
-          <Spinner size={1.6} subtle />
-          <span>Loading syllabus...</span>
-        </div>
+    <div>
+      <PageHeader back eyebrow={user?.branch || 'Course documents'} title="Syllabus" description="Open the official course scope for your branch and keep it beside your study plan." />
+      {loading ? <StatePanel type="loading" title="Loading your syllabus" description="Finding the documents available for your branch." /> : error ? <StatePanel type="error" title="Syllabus unavailable" description={error} action={<button type="button" className="btn-secondary" onClick={() => setReloadKey((key) => key + 1)}>Try again</button>} /> : !files.length ? <StatePanel title="No syllabus found" description={user?.branch ? `No syllabus has been published for ${user.branch}.` : 'Add your branch to your profile so UNIO can find the right syllabus.'} /> : (
+        <section className="syllabus-grid" aria-label="Available syllabus files">
+          {files.map((file) => {
+            const id = getFileId(file);
+            const available = isAvailable(file);
+            const selected = getFileId(selectedFile) === id;
+            return <article key={id} className="syllabus-card" data-reveal><span className="bento-card__icon"><FilePdf size={25} weight="duotone" /></span><div><h2>{file.name || 'Syllabus PDF'}</h2><p>{available ? 'PDF document ready to preview.' : 'A preview source has not been added yet.'}</p></div><button type="button" className="btn-secondary" onClick={() => openFile(file)} disabled={!available || openingId === id} aria-pressed={selected}>{openingId === id ? 'Preparing…' : selected ? 'Selected' : 'Open document'}</button></article>;
+          })}
+        </section>
       )}
-      {error && <p className="text-red-500">{error}</p>}
-
-      {!loading && files.length === 0 && (
-        <p className="text-gray-400">No syllabus files found for your branch.</p>
-      )}
-
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-4">
-        {files.map((f) => (
-          <div key={f.filePath || f.name} className="border rounded p-3 bg-white/5">
-            <div className="font-medium text-sm mb-2 text-white">{f.name}</div>
-            {f.url || f.filePath ? (
-              <button
-                onClick={async () => {
-                  setPdfLoadError(false);
-                  try {
-                    // Request proxied file URL from backend so react-pdf can fetch same-origin
-                    const qp = f.filePath ? `filePath=${encodeURIComponent(f.filePath)}` : `url=${encodeURIComponent(f.url)}`;
-                    const proxyRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/resources/syllabus/file?${qp}`, { responseType: 'blob' });
-                    // create object URL from blob and set as selectedFile.url
-                    const blob = new Blob([proxyRes.data], { type: proxyRes.headers['content-type'] || 'application/pdf' });
-                    const objectUrl = URL.createObjectURL(blob);
-                    setSelectedFile({ ...f, url: objectUrl, _proxied: true });
-                    // reset page/viewer state
-                    setNumPages(null);
-                    setPageNumber(1);
-                    setDocLoading(true);
-                    setPageRendering(true);
-                  } catch (err) {
-                    console.error('Failed to load proxied file', err);
-                    toast.error('Failed to load preview; opening in new tab');
-                    // Fallback: open original URL in new tab
-                    if (f.url) window.open(f.url, '_blank', 'noopener,noreferrer');
-                  }
-                }}
-                className="text-[#13c4a3] underline"
-              >
-                Open PDF
-              </button>
-            ) : (
-              <span className="text-gray-400">No preview available</span>
-            )}
-          </div>
-        ))}
-      </div>
 
       {selectedFile && (
-        <div className="mt-6">
-            <div className="flex justify-between items-center mb-2">
-            <div className="font-semibold">{selectedFile.name}</div>
-            <div className="flex items-center gap-2">
-              <a href={selectedFile.url} target="_blank" rel="noreferrer" className="text-sm text-teal-400 px-3 py-1 rounded bg-transparent border border-transparent hover:underline">Open in new tab</a>
-              <a href={selectedFile.url} download className="text-sm text-gray-200 px-3 py-1 rounded bg-gray-700">Download</a>
-              <button
-                onClick={() => {
-                  // cleanup object URL if proxied
-                  try {
-                    if (selectedFile && selectedFile._proxied && selectedFile.url) {
-                      URL.revokeObjectURL(selectedFile.url);
-                    }
-                  } catch (e) {
-                    // ignore
-                  }
-                  setSelectedFile(null);
-                  setPdfLoadError(false);
-                  setPdfAutoOpened(false);
-                }}
-                className="text-sm text-gray-300 bg-gray-700 px-3 py-1 rounded"
-              >
-                Close
-              </button>
+        <section className="syllabus-reader" aria-labelledby="syllabus-document-title">
+          <header className="reader-toolbar">
+            <div className="reader-toolbar__title"><FilePdf size={20} weight="duotone" /><strong id="syllabus-document-title">{selectedFile.name}</strong></div>
+            <div className="reader-toolbar__pages"><button type="button" className="icon-button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={nativeMode || pageNumber <= 1} aria-label="Previous page"><CaretLeft size={18} /></button><span>{nativeMode ? 'Native preview' : `${pageNumber} / ${numPages || '—'}`}</span><button type="button" className="icon-button" onClick={() => setPageNumber((page) => Math.min(numPages || page, page + 1))} disabled={nativeMode || !numPages || pageNumber >= numPages} aria-label="Next page"><CaretRight size={18} /></button></div>
+            <div className="reader-toolbar__actions">
+              <button type="button" className="icon-button" onClick={() => setScale((value) => Math.max(.6, +(value - .15).toFixed(2)))} disabled={nativeMode || scale <= .6} aria-label="Zoom out"><MagnifyingGlassMinus size={18} /></button>
+              <span className="reader-zoom">{nativeMode ? 'Auto' : `${Math.round(scale * 100)}%`}</span>
+              <button type="button" className="icon-button" onClick={() => setScale((value) => Math.min(2.4, +(value + .15).toFixed(2)))} disabled={nativeMode || scale >= 2.4} aria-label="Zoom in"><MagnifyingGlassPlus size={18} /></button>
+              {selectedDownloadUrl && <a className="icon-button reader-download" href={selectedDownloadUrl} download={getPdfFileName(selectedFile.name)} aria-label="Download PDF"><DownloadSimple size={18} /></a>}
+              {selectedDownloadUrl && <a className="icon-button" href={selectedDownloadUrl} target="_blank" rel="noreferrer" aria-label="Open PDF in a new tab"><ArrowSquareOut size={18} /></a>}
+              <button type="button" className="icon-button" onClick={closePreview} aria-label="Close syllabus preview"><X size={18} /></button>
             </div>
+          </header>
+          <div className={`reader-viewport app-scrollbar ${nativeMode ? 'reader-viewport--native' : ''}`} ref={viewportRef}>
+            {renderMode === 'error' ? <StatePanel compact type="error" title="Preview unavailable" description={pdfError} action={<div className="state-actions"><button type="button" className="btn-secondary" onClick={retryPreview}>Retry preview</button>{selectedDownloadUrl && <a className="btn-ghost" href={selectedDownloadUrl} download={getPdfFileName(selectedFile.name)}>Download PDF</a>}</div>} /> : nativeMode && selectedFile.previewUrl ? <div className="native-pdf-preview"><p className="native-pdf-notice">{pdfError || 'Using your browser’s built-in PDF viewer.'}</p><iframe className="native-pdf-frame" src={selectedFile.previewUrl} title={`${selectedFile.name} PDF`} /></div> : (
+              <>
+                <div className="watermark-grid" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <span key={index}>{watermark} · UNIO</span>)}</div>
+                {documentLoading && <div className="reader-status" role="status"><span className="is-spinning"><FilePdf size={25} /></span><span>Preparing and validating syllabus…</span></div>}
+                {selectedFile.previewUrl && <Document key={`${selectedIdRef.current}-${previewAttempt}`} file={selectedFile.previewUrl} onLoadSuccess={({ numPages: pages }) => { setNumPages(pages); setDocumentLoading(false); }} onLoadError={() => switchToNativeFallback('The enhanced renderer could not open this syllabus, so UNIO switched to your browser viewer.')} loading={null} error={null}>
+                  <Page pageNumber={pageNumber} scale={scale} width={Math.max(260, Math.min(viewportWidth - 48, 960))} renderAnnotationLayer={false} renderTextLayer={false} className="reader-page" onRenderError={() => switchToNativeFallback('This page could not be drawn by the enhanced renderer, so UNIO switched to your browser viewer.')} />
+                </Document>}
+              </>
+            )}
           </div>
-
-          <div className="w-full h-[70vh] bg-white rounded overflow-hidden p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-3 gap-2">
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1 bg-gray-800 rounded text-sm" onClick={() => setPageNumber(p => Math.max(1, p - 1))}>Prev</button>
-                <div className="text-sm text-gray-300">Page</div>
-                <input type="number" min={1} max={numPages || 1} value={pageNumber} onChange={(e) => setPageNumber(Number(e.target.value) || 1)} className="w-14 text-center rounded bg-gray-700 px-2 py-1 text-white text-sm" />
-                <div className="text-sm text-gray-400">/ {numPages || '-'}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1 bg-gray-800 rounded text-sm" onClick={() => setScale(s => Math.max(0.5, +(s - 0.1).toFixed(2)))}>-</button>
-                <div className="text-sm text-gray-300">Zoom</div>
-                <button className="px-3 py-1 bg-gray-800 rounded text-sm" onClick={() => setScale(s => Math.min(2.25, +(s + 0.1).toFixed(2)))}>+</button>
-              </div>
-            </div>
-
-            <div onContextMenu={(e) => { if (selectedFile) e.preventDefault(); }} className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center relative">
-              <WatermarkOverlay text={watermarkText} />
-              {!pdfLoadError ? (
-                <div style={{ position: 'relative', zIndex: 10 }}>
-                  {/* show spinner overlay while document or page is loading/rendering */}
-                  {(docLoading || pageRendering) && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30">
-                      <Spinner size={2.2} />
-                    </div>
-                  )}
-                  <Document
-                    file={selectedFile.url}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                    onLoadError={onDocumentLoadError}
-                    onLoadProgress={() => { setDocLoading(true); }}
-                  >
-                    <div className={`${pageRendering ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'} transition-all duration-300 ease-in-out`}> 
-                      <Page
-                        pageNumber={pageNumber}
-                        scale={scale}
-                        onRenderSuccess={onPageRenderSuccess}
-                        onRenderError={(err) => { console.error('Page render error', err); setPageRendering(false); }}
-                        onLoadError={(err) => { console.error('Page load error', err); setPageRendering(false); }}
-                        renderAnnotationLayer={false}
-                      />
-                    </div>
-                  </Document>
-                </div>
-              ) : (
-                <div className="p-4 text-center">
-                  <p className="text-gray-600 mb-2">Preview not available due to browser restrictions.</p>
-                  <a href={selectedFile.url} target="_blank" rel="noreferrer" className="text-teal-400 underline">Open PDF in new tab</a>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        </section>
       )}
     </div>
   );

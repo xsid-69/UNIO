@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type:String,
+        select:false,
 
     },
     googleId:{
@@ -55,6 +56,15 @@ const userSchema = new mongoose.Schema({
         default:false
     }
 })
+
+userSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        void document;
+        delete returnedObject.password;
+        delete returnedObject.__v;
+        return returnedObject;
+    }
+});
 
 const userModel = mongoose.model("user" , userSchema)
 

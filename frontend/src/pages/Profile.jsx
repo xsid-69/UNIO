@@ -1,48 +1,12 @@
-import React from 'react';
+import { ArrowRight, Books, Gear } from '@phosphor-icons/react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import ProfileImage from '../components/ProfileImage';
+import PageHeader from '../components/ui/PageHeader';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
-
-  return (
-    <div className='flex w-full h-full items-start justify-center pt-8'>
-      <div id='Profile' className="glass-card flex items-center flex-col p-8 rounded-3xl shadow-xl w-full max-w-sm text-center relative hover:shadow-2xl transition-all duration-300 border border-[var(--glass-border)]">
-        {user?.isAdmin ? 
-        <div className="absolute top-4 right-4 bg-red-500/80 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-          Admin
-        </div> 
-        : null  
-      }
-        <Link to={"/profilesettings"} className="group">
-           <div className="relative w-full my-4 flex justify-center">
-             <div className="relative">
-                <ProfileImage 
-                  src={user?.profilePic || user?.avatar}
-                  size="lg"
-                  className="border-4 border-[var(--color-primary)]/30 group-hover:border-[var(--color-primary)] transition-all duration-300 rounded-full"
-                />
-             </div>
-           </div>
-        <h2 id='name' className="text-xl font-bold mb-1 text-white group-hover:text-[var(--color-primary)] transition-colors">{user?.name || 'User Name'}</h2>
-        <p id='info' className="text-[var(--color-text-muted)] text-sm mb-4">
-          {user?.email || 'user@example.com'}
-        </p>
-        <div className="w-full h-px bg-[var(--glass-border)] my-4"></div>
-        <div className="text-[var(--color-text-main)] space-y-1">
-          <p className="font-semibold">{user?.branch || 'Branch'}</p>
-          <div className="flex justify-center gap-2 text-sm text-[var(--color-text-muted)]">
-             <span>{user?.year ? `${user.year} Year` : 'Year'}</span>
-             <span>•</span>
-             <span>{user?.semester ? `Sem ${user.semester}` : 'Semester'}</span>
-          </div>
-        </div>
-        </Link>
-        
-      </div>
-    </div>
-  );
+  return <div><PageHeader back eyebrow="Student account" title="Your profile" description="The academic details shaping your subject list and study library." /><div className="profile-form-layout"><section className="surface-panel profile-summary" data-reveal><ProfileImage src={user?.profilePic || user?.avatar} size="xl" /><h2>{user?.name || 'Student'}</h2><p>{user?.email}</p>{user?.isAdmin && <span className="profile-role">Administrator</span>}</section><section className="surface-panel profile-fields" data-reveal><p className="context-label">Academic context</p><h2 className="profile-fields__title">Your current study setup</h2><div className="profile-facts"><div><span>Branch</span><strong>{user?.branch || 'Not set'}</strong></div><div><span>Year</span><strong>{user?.year ? `Year ${user.year}` : 'Not set'}</strong></div><div><span>Semester</span><strong>{user?.semester ? `Semester ${user.semester}` : 'Not set'}</strong></div></div><div className="profile-actions"><Link to="/profiledata" className="btn-primary">Edit profile <ArrowRight size={18} /></Link><Link to="/subjects" className="btn-secondary"><Books size={18} /> View subjects</Link><Link to="/settings" className="btn-ghost"><Gear size={18} /> Settings</Link></div></section></div></div>;
 };
 
 export default Profile;

@@ -1,4 +1,29 @@
-# Dependencies
-/node_modules
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/dist-ssr/
+coverage/
+
+# Environment and local configuration
 .env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+uploads/
+
+# Editor, OS, and tool-specific files
+.vscode/
+.idea/
+.impeccable/
+.DS_Store
+Thumbs.db
+
+# Local data
 subjects.json

@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import userModel from '../models/user.model.js';
-import { uploadImage } from '../service/storage.service.js'; // Import ImageKit upload service
+import { uploadImage } from '../service/storage.service.js';
+import { getAuthCookieClearOptions, getAuthCookieOptions } from '../config/auth-cookie.js';
 
 
 async function registerController(req , res ) {
@@ -43,30 +44,18 @@ async function registerController(req , res ) {
         return res.status(500).json({ message: 'Failed to create user' });
     }
 
-    const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '7d' }); // Added expiresIn
-    // Set httpOnly cookie for authentication persistence
-    // In development, secure should be false. In production, it should be true.
-    const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' // Use 'None' for production if secure is true, 'Lax' otherwise
-    };
-    // If not in production, explicitly set secure to false for development
-    if (process.env.NODE_ENV !== 'production') {
-        cookieOptions.secure = false;
-    }
-    res.cookie("token" , token , cookieOptions);
+    const token = jwt.sign({id:user._id}, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('token', token, getAuthCookieOptions());
 
     return res.status(201).json({
         message:"User registered successfully",
-        user,
-        token // Include token in the response body
+        user
     })
 }
 
 async function logincontroller(req , res){
     const {email , password} = req.body;
-    const user = await userModel.findOne({email});
+    const user = await userModel.findOne({email}).select('+password');
     if(!user){
         return res.status(400).json({
             message:"User not found"
@@ -92,12 +81,11 @@ async function logincontroller(req , res){
             message:"Invalid password"
         })
     }
-    const token = jwt.sign({id:user._id} , process.env.JWT_SECRET, { expiresIn: '7d' }); // Added expiresIn
-    res.cookie("token" , token , { httpOnly: true, secure: process.env.NODE_ENV === 'production' }); // Added httpOnly and secure
+    const token = jwt.sign({id:user._id} , process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('token', token, getAuthCookieOptions());
     return res.status(200).json({
         message: "Login successful",
-        user,
-        token
+        user
     })
 }
 
@@ -164,15 +152,7 @@ async function updateProfileController(req, res) {
 // New controller to clear auth cookie on logout
 async function logoutController(req, res) {
     try {
-        // Clear the token cookie; set sameSite and secure similarly to how it was set
-        const cookieOptions = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
-        };
-        if (process.env.NODE_ENV !== 'production') cookieOptions.secure = false;
-
-        res.clearCookie('token', cookieOptions);
+        res.clearCookie('token', getAuthCookieClearOptions());
         return res.status(200).json({ message: 'Logged out' });
     } catch (error) {
         console.error('Error during logout:', error);

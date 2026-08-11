@@ -1,248 +1,133 @@
-# UNITECH - Educational Resource & Management Platform 
+# UNIO — University Study Workspace
 
-UNIO is a production level CRUD website cutting-edge educational platform designed to bridge the gap between students and academic resources. It provides a seamless interface for accessing study materials, managing academic progress, and leveraging AI to enhance the learning experience. Built with a modern tech stack, UNIO ensures a fast, responsive, and intuitive user experience for both students and administrators.
+UNIO is a student-focused study platform for finding course notes, syllabi, previous-year papers, solved questions, and subject-specific resources in one focused workspace. It includes email/password and Google authentication, profile-based course context, admin publishing, and resilient in-browser PDF reading.
 
-## 🚀 Live Demo
+## Live application
 
-[**🔴 Live Link**](https://unitech-ruvf.onrender.com/)
+[Open UNIO](https://unitech-ruvf.onrender.com/)
 
----
+## Dashboard
 
-## 🛠 Technologies Used
+![UNIO student dashboard](https://res.cloudinary.com/dhox2ocnr/image/upload/v1786444333/Screenshot_2026-08-11_160011_karu94.png)
 
-### Frontend
+## Features
 
-- **React.js (Vite):** Fast and modern UI library for building interactive interfaces.
-- **Redux Toolkit:** Efficient state management for authentication and user data.
-- **Tailwind CSS:** Utility-first CSS framework for rapid and responsive styling.
-- **Framer Motion:** For smooth animations and enhanced user interactions.
-- **Axios:** For seamless HTTP requests to the backend.
-- **React Router DOM:** For client-side routing and navigation.
+- Personalized dashboard based on branch, year, and semester
+- Email/password and Google OAuth authentication
+- Notes, syllabus, previous-year papers, and solved-question libraries
+- Inline PDF reader with pagination, zoom, fullscreen, native fallback, and download
+- Profile and academic-context management
+- Role-protected administrative PDF publishing
+- Responsive navigation, keyboard focus, reduced-motion support, and accessible touch targets
+- Study AI workspace preview
 
-### Backend
+## Technology
 
-- **Node.js & Express.js:** Robust runtime and framework for building scalable RESTful APIs.
-- **MongoDB (Mongoose):** NoSQL database for flexible data storage.
-- **JWT (JSON Web Tokens):** Secure authentication and session management.
-- **Passport.js:** Google OAuth integration for easy sign-ins.
-- **ImageKit:** Cloud-based image and file storage solution.
-- **Multer:** Middleware for handling file uploads.
+**Frontend:** React 19, Vite 7, Redux Toolkit, React Router, Tailwind CSS 4, GSAP, Lenis, Framer Motion, React PDF, Axios, and Phosphor Icons.
 
----
+**Backend:** Node.js, Express 5, MongoDB/Mongoose, JWT, Passport Google OAuth, ImageKit, Multer, and Axios.
 
-## ✨ Features
+## Repository structure
 
-### 👤 For Users (Students)
+```text
+UNIO/
+├── backend/                  # Express API, authentication, MongoDB, and file proxying
+├── frontend/                 # React/Vite application
+├── DESIGN.md                 # Product design system
+├── PRODUCT.md                # Product direction
+└── README.md
+```
 
-1.  **Secure Authentication:**
-    - Sign up and Log in via Email/Password.
-    - Quick access using **Google OAuth**.
-2.  **Personalized Dashboard:**
-    - View subjects tailored to your specific **Branch**, **Year**, and **Semester**.
-3.  **Resource Access:**
-    - Browse and view **Notes**, **Syllabus**, and **Study Materials**.
-    - Built-in PDF viewer for reading documents directly in the browser.
-4.  **Profile Management:**
-    - Update personal details (Name, Branch, Year, Semester).
-    - Upload and change profile pictures.
-5.  **AI Assistant:**
-    - Integrated AI Chat features to assist with doubt clearing and learning.
-
-### 🛡️ For Admins
-
-1.  **Resource Management:**
-    - Upload PDFs and study materials directly to the platform.
-    - Organize resources by Subject and Category.
-2.  **Content Creation:**
-    - Create and manage notes and educational content.
-3.  **Secure Access:**
-    - Role-based access control to protect administrative routes.
-
----
-
-## � Screenshots
-
-|                              Dashboard                                 |                              Ai assistant                        |
-| :--------------------------------------------------------------------: | :--------------------------------------------------------------: |
-| ![Landing Page](https://via.placeholder.com/600x400?text=Landing+Page) | ![Dashboard](https://via.placeholder.com/600x400?text=Dashboard) |
-
-
-
----
-
-## �💻 How to Run Locally
-
-Follow these steps to set up the project on your local machine.
+## Local development
 
 ### Prerequisites
 
-- Node.js installed
-- MongoDB installed or a generic MongoDB URI
+- Node.js 20.19 or newer
+- npm
+- MongoDB connection string
+- Google OAuth application
+- ImageKit account
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/xsid-69/UNIO.git
-cd UNIO
-```
-
-### 2. Backend Setup
-
-Navigate to the backend directory and install dependencies.
+### Backend
 
 ```bash
 cd backend
 npm install
-```
-
-**Configure Environment Variables:**
-Create a `.env` file in the `backend` root and add the following keys:
-
-```env
-PORT=3000
-MONGO_DB_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-FRONTEND_URL=http://localhost:5173
-BACKEND_URL=http://localhost:3000
-NODE_ENV=development
-
-# Google Auth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# ImageKit (File Storage)
-IMAGEKIT_PUBLIC_KEY=your_public_key
-IMAGEKIT_PRIVATE_KEY=your_private_key
-IMAGEKIT_URL_ENDPOINT=your_url_endpoint
-```
-
-**Start the Server:**
-
-```bash
+copy .env.example .env
 npm start
-# OR if you have nodemon installed
-npx nodemon Server.js
 ```
 
-### 3. Frontend Setup
+Fill the copied file with your own development credentials. Never commit `.env` or `.env.local`.
 
-Open a new terminal, navigate to the frontend directory, and install dependencies.
+### Frontend
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
-```
-
-**Start the Application:**
-
-```bash
+copy .env.example .env
 npm run dev
 ```
 
-The application should now be running at `http://localhost:5173` (or the port specified by Vite).
+The frontend runs at `http://localhost:5173`; the backend defaults to `http://localhost:3000`.
 
----
+## Environment variables
 
-## 🏗️ Project Structure & Architecture
+### Backend
 
-### Directory Structure
+| Variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | Use `production` in deployed environments |
+| `PORT` | HTTP port supplied by the host or `3000` locally |
+| `MONGO_DB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Long random signing secret |
+| `FRONTEND_URL` | Exact public frontend origin, without a trailing slash |
+| `BACKEND_URL` | Exact public API origin, without a trailing slash |
+| `CORS_ORIGINS` | Optional comma-separated additional trusted origins |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth credentials |
+| `IMAGEKIT_PUBLIC_KEY` / `IMAGEKIT_PRIVATE_KEY` | ImageKit API credentials |
+| `IMAGEKIT_URL_ENDPOINT` | ImageKit delivery endpoint and default allowed PDF host |
+| `PDF_ALLOWED_HOSTS` | Optional comma-separated extra PDF source hosts |
+| `MONGO_DNS_SERVERS` | Optional local DNS resolver override; normally unset in production |
+
+### Frontend
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_BACKEND_URL` | Public backend origin used by browser API requests |
+| `BACKEND_URL` | Optional Vite development-proxy target |
+
+## Production checks
 
 ```bash
-UNIO
-├── backend
-│   ├── config/             # Database & other configurations
-│   ├── controller/         # Request handlers (Business Logic)
-│   ├── db/                 # Database connection logic
-│   ├── middlewares/        # Auth & Error handling middlewares
-│   ├── models/             # Mongoose Schemas (Data Models)
-│   ├── routes/             # API Route definitions
-│   ├── service/            # Helper services (e.g., ImageKit)
-│   ├── src/                # Additional source files
-│   ├── .env                # Environment variables
-│   └── Server.js           # Entry point for Backend
-│
-└── frontend
-    ├── public/             # Static assets
-    ├── src
-    │   ├── components/     # Reusable UI Components
-    │   ├── context/        # Context API (if used)
-    │   ├── lib/            # Utility libraries
-    │   ├── pages/          # Full Page Components
-    │   ├── routes/         # Routing definition (AppRoutes)
-    │   ├── store/          # Redux Store slices & setup
-    │   ├── App.jsx         # Main App Component
-    │   └── main.jsx        # Entry point for React
-    ├── .env                # Frontend Environment variables
-    ├── index.html          # HTML Template
-    ├── tailwind.config.js  # Tailwind CSS Config
-    └── vite.config.js      # Vite Config
+cd frontend
+npm ci
+npm run lint
+npm run build
+
+cd ../backend
+npm ci
+npm run check
 ```
 
-### Architecture & Flow
+The backend exposes `GET /api/health`. It reports `200` only when MongoDB is connected.
 
-```text
-[ Client (Frontend) ]
-       |
-       | (HTTP / Axios)
-       v
-[ Server (Backend) ]
-       |
-       +---> [ Routes ]
-       |        |
-       |        v
-       +---> [ Controllers ]
-       |        |
-       |        v
-       +---> [ Services / Models ]
-                |
-                v
-          [ MongoDB ]
-```
+## Deployment requirements
 
-1.  **Frontend**: React + Vite + Tailwind CSS. Manages state via Redux Toolkit.
-2.  **API Layer**: Express.js REST API.
-3.  **Authentication**: JWT for sessions, Passport.js for Google OAuth.
-4.  **Database**: MongoDB (Mongoose).
-5.  **Storage**: ImageKit for file uploads.
+1. Deploy the backend with all required production environment variables and `NODE_ENV=production`.
+2. Deploy `frontend/dist` after running `npm run build` with the production `VITE_BACKEND_URL`.
+3. Configure SPA rewrites to serve `index.html` for unknown frontend routes. A Netlify/Render-compatible `_redirects` file is included.
+4. Add `${BACKEND_URL}/api/auth/google/callback` to Google OAuth’s authorized redirect URIs.
+5. Add the exact frontend and backend origins to Google’s authorized JavaScript origins where applicable.
+6. Keep frontend and backend URLs on HTTPS. Cross-site session cookies use `Secure`, `HttpOnly`, and `SameSite=None` in production.
+7. Verify `/api/health`, email login, Google login, logout, direct route refreshes, PDF preview, fallback rendering, and downloads after deployment.
 
-### 🗄️ Database Schema
+## Security notes
 
-#### 👤 User Model (`users`)
+- Authentication tokens are stored in HttpOnly cookies, not URL parameters or browser storage.
+- Password hashes are excluded from API serialization.
+- PDF proxying permits only configured hosts, limits response size and timeout, and validates PDF signatures.
+- Secrets, local environment overrides, build output, editor metadata, and dependency directories are ignored by Git.
 
-| Field        | Type   | Required | Unique | Description                      |
-| :----------- | :----- | :------- | :----- | :------------------------------- |
-| `name`       | String | False    | True   | Full name of the user            |
-| `email`      | String | True     | True   | User's email address             |
-| `password`   | String | False    | False  | Hashed password (if manual auth) |
-| `googleId`   | String | False    | False  | Google OAuth ID                  |
-| `role`       | String | False    | False  | `user` (default) or `admin`      |
-| `branch`     | String | False    | False  | Student's branch (e.g., CSE)     |
-| `year`       | String | False    | False  | Academic Year                    |
-| `semester`   | String | False    | False  | Current Semester                 |
-| `profilePic` | String | False    | False  | URL for profile picture          |
-| `avatar`     | String | False    | False  | Avatar identifier                |
-
-#### 📚 Subject Model (`subjectsData`)
-
-| Field      | Type   | Required | Description                        |
-| :--------- | :----- | :------- | :--------------------------------- |
-| `name`     | String | True     | Name of the subject                |
-| `branch`   | String | True     | Branch associated with the subject |
-| `semester` | Number | True     | Semester number                    |
-
-#### 📝 Note Model (`notes`)
-
-| Field         | Type   | Required | Index | Description             |
-| :------------ | :----- | :------- | :---- | :---------------------- |
-| `title`       | String | True     | False | Title of the note       |
-| `description` | String | False    | False | Brief description       |
-| `subject`     | String | False    | True  | Related Subject         |
-| `branch`      | String | False    | True  | Branch filter           |
-| `semester`    | String | False    | True  | Semester filter         |
-| `pdfUrl`      | String | False    | False | URL to the PDF resource |
-
----
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License.

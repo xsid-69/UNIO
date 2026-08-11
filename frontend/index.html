@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/Unitech.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UNITECH</title>
+    <meta name="theme-color" content="#07101f" />
+    <meta name="description" content="UNIO brings university notes, papers, syllabi, and study support into one focused workspace." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="UNIO — Your study workspace" />
+    <meta property="og:description" content="Find the right university resource and start studying without the clutter." />
+    <meta property="og:image" content="https://res.cloudinary.com/dhox2ocnr/image/upload/v1786444333/Screenshot_2026-08-11_160011_karu94.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>UNIO — Your study workspace</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      const redirect = sessionStorage.getItem('unio:redirect');
+      if (redirect) {
+        sessionStorage.removeItem('unio:redirect');
+        const target = new URL(redirect);
+        window.history.replaceState(null, '', `${target.pathname}${target.search}${target.hash}`);
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,9 +1,7 @@
 import Note from '../models/note.model.js';
-import User from '../models/user.model.js'; // Import User model to check role
-import axios from 'axios';
 import ImageKit from 'imagekit';
 import '../config/env.js';
-import upload from '../middlewares/multerConfig.js'; // Import multer for file uploads
+import { servePdfProxy } from '../service/pdf-proxy.service.js';
 
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -11,16 +9,20 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // GET /api/notes - list notes with optional filters: ?semester=..&subject=..&branch=..
 export async function listNotes(req, res) {
   try {
     const { semester, subject, branch, limit = 100 } = req.query;
     const q = {};
     if (semester) q.semester = String(semester).trim();
-    if (subject) q.subject = { $regex: new RegExp(String(subject).trim(), 'i') };
+    if (subject) q.subject = { $regex: new RegExp(escapeRegex(String(subject).trim()), 'i') };
     if (branch) q.branch = String(branch).trim();
 
-    const notes = await Note.find(q).sort({ createdAt: -1 }).limit(parseInt(limit, 10));
+    const parsedLimit = Number.parseInt(limit, 10);
+    const safeLimit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 100;
+    const notes = await Note.find(q).sort({ createdAt: -1 }).limit(safeLimit);
     return res.json({ success: true, notes });
   } catch (err) {
     console.error('listNotes error', err && err.stack ? err.stack : err);
@@ -47,7 +49,7 @@ export async function getNotesBySubject(req, res) {
     const { subjectName } = req.params;
     const { branch, semester } = req.query;
 
-    const query = { subject: { $regex: new RegExp(`^${subjectName}$`, 'i') } };
+    const query = { subject: { $regex: new RegExp(`^${escapeRegex(subjectName)}$`, 'i') } };
 
     if (branch) query.branch = branch;
     if (semester) query.semester = semester;
@@ -65,63 +67,15 @@ export async function getNotesBySubject(req, res) {
   }
 }
 
-// Proxy a PDF URL (either ImageKit path or external url) similar to syllabus proxy
+// Proxy a PDF URL (either an ImageKit path or an explicitly allowed URL).
 export async function proxyPdf(req, res) {
-  try {
-    const { filePath, url } = req.query;
-    console.log(`[proxyPdf] Request received. filePath: ${filePath}, url: ${url}`);
-
-    if (!filePath && !url) {
-        console.error('[proxyPdf] Missing filePath or url');
-        return res.status(400).json({ success: false, message: 'filePath or url required' });
-    }
-
-    let targetUrl = url;
-    if (filePath) {
-      targetUrl = imagekit.url({ path: filePath });
-    }
-    console.log(`[proxyPdf] Target URL: ${targetUrl}`);
-
-    try {
-        const axiosRes = await axios.get(targetUrl, { 
-            responseType: 'stream',
-            validateStatus: (status) => status < 400 // Throw error for 400+
-        });
-        
-        console.log(`[proxyPdf] Upstream status: ${axiosRes.status}`);
-        console.log(`[proxyPdf] Content-Type: ${axiosRes.headers['content-type']}`);
-        console.log(`[proxyPdf] Content-Length: ${axiosRes.headers['content-length']}`);
-
-        if (axiosRes.headers['content-type']) {
-            res.setHeader('Content-Type', axiosRes.headers['content-type']);
-        } else {
-            res.setHeader('Content-Type', 'application/pdf'); // Fallback
-        }
-        
-        if (axiosRes.headers['content-length']) {
-            res.setHeader('Content-Length', axiosRes.headers['content-length']);
-        }
-
-        axiosRes.data.pipe(res);
-        
-        axiosRes.data.on('error', (streamErr) => {
-            console.error('[proxyPdf] Stream error:', streamErr);
-            if (!res.headersSent) res.status(502).json({ success: false, message: 'Stream failed' });
-        });
-        
-    } catch (upstreamErr) {
-        console.error('[proxyPdf] Upstream error:', upstreamErr.message);
-        if (upstreamErr.response) {
-            console.error('[proxyPdf] Upstream response status:', upstreamErr.response.status);
-            // console.error('[proxyPdf] Upstream response data:', upstreamErr.response.data); // Stream data might be messy to log
-        }
-        return res.status(502).json({ success: false, message: 'Failed to fetch PDF from upstream' });
-    }
-
-  } catch (err) {
-    console.error('proxyPdf error', err && err.stack ? err.stack : err);
-    return res.status(500).json({ success: false, message: 'Internal Server Error in proxy' });
+  const { filePath, url } = req.query;
+  if (!filePath && !url) {
+    return res.status(400).json({ success: false, message: 'filePath or url required' });
   }
+
+  const targetUrl = filePath ? imagekit.url({ path: filePath }) : url;
+  return servePdfProxy(res, targetUrl);
 }
 
 // POST /api/notes - create a new note
@@ -156,29 +110,17 @@ export async function createNote(req, res) {
 // POST /api/notes/upload - upload PDF to ImageKit (admin only)
 export async function uploadPdfToImageKit(req, res) {
   try {
-    console.log('Upload request received');
-    console.log('Request file:', req.file);
-
-    // Multer will handle file parsing and attach it to req.file
-    // The 'upload.single('pdf')' middleware should be applied before this controller
-    // 'pdf' is the name of the form field for the file upload
-
     if (!req.file) {
-      console.log('No file in request');
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    const { originalname, buffer, size, mimetype } = req.file;
-    console.log('File details:', { originalname, size, mimetype });
-
+    const { originalname, buffer } = req.file;
     if (!buffer || buffer.length === 0) {
-      console.log('Empty file buffer');
       return res.status(400).json({ success: false, message: 'Empty file' });
     }
 
     const fileExtension = originalname.split('.').pop();
-    const filename = `notes/${Date.now()}.${fileExtension}`; // Unique filename for ImageKit
-    console.log('Uploading to ImageKit:', filename);
+    const filename = `notes/${Date.now()}.${fileExtension}`;
 
     // Upload to ImageKit
     const imageKitResponse = await imagekit.upload({
@@ -188,11 +130,8 @@ export async function uploadPdfToImageKit(req, res) {
       // You can add other options like tags, customCoordinates, etc. if needed
     });
 
-    console.log('ImageKit response:', imageKitResponse);
-
-    // The response contains url, filePath, etc.
     const pdfUrl = imageKitResponse.url;
-    const imageKitFilePath = imageKitResponse.filePath; // This is useful for the proxyPdf endpoint
+    const imageKitFilePath = imageKitResponse.filePath;
 
     // Here, we are just returning the URL.
     // If you want to associate this PDF with a specific note, you would typically
@@ -210,12 +149,10 @@ export async function uploadPdfToImageKit(req, res) {
     });
 
   } catch (err) {
-    console.error('uploadPdfToImageKit error:', err);
-    console.error('Error stack:', err.stack);
+    console.error('uploadPdfToImageKit error:', err?.message || err);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload PDF to ImageKit',
-      error: err.message
+      message: 'Failed to upload PDF to ImageKit'
     });
   }
 }
