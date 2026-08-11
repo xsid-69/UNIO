@@ -1,110 +1,29 @@
-import React, { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowUp, Brain, Info, Sparkle } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Send, Sparkles } from 'lucide-react';
+
+const suggestions = ['Explain recursion simply', 'Plan a 45-minute revision session', 'Create a DSA practice checklist'];
 
 const Ai = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your UNIO AI assistant. How can I help you with your studies like DSA, Data Science, etc. today?", sender: 'ai' }
-  ]);
+  const endRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const [messages, setMessages] = useState([{ id: 1, text: 'Tell me what you are studying. I can help you turn it into a clearer first step.', sender: 'ai' }]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-
-  const handleGoBack = () => {
-    navigate(-1);
+  const [typing, setTyping] = useState(false);
+  useEffect(() => endRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), [messages, typing]);
+  useEffect(() => () => window.clearTimeout(timeoutRef.current), []);
+  const send = (value) => {
+    const text = value.trim();
+    if (!text || typing) return;
+    setMessages((current) => [...current, { id: Date.now(), text, sender: 'user' }]); setInput(''); setTyping(true);
+    timeoutRef.current = window.setTimeout(() => { setMessages((current) => [...current, { id: Date.now() + 1, text: 'Study AI is currently a preview. Live subject-aware explanations will appear here when the learning service is connected.', sender: 'ai' }]); setTyping(false); }, 700);
   };
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const newMessage = { id: Date.now(), text: input, sender: 'user' };
-    setMessages(prev => [...prev, newMessage]);
-    setInput('');
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        text: "I'm a demo AI interface. I can't really process that yet, but the UI looks great, doesn't it?", 
-        sender: 'ai' 
-      }]);
-      setIsTyping(false);
-    }, 1500);
-  };
-
-  return (
-    <div className="flex flex-col h-[calc(100vh-100px)] w-full max-w-5xl mx-auto p-4 animate-[fadeIn_0.5s_ease-out]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--glass-border)]">
-        <div className="flex items-center gap-4">
-          <button onClick={handleGoBack} className="p-2 rounded-full hover:bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] hover:text-white transition-colors">
-            <ChevronLeft size={24} />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-900/30">
-              <Sparkles size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">AI Assistant</h1>
-              <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                 <span className="text-xs text-[var(--color-text-muted)]">Always Online</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto mb-6 pr-2 space-y-6 scrollbar-hide">
-        {messages.map((msg) => (
-          <div 
-            key={msg.id} 
-            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div 
-              className={`max-w-[80%] md:max-w-[70%] p-4 rounded-2xl shadow-md text-sm md:text-base leading-relaxed
-              ${msg.sender === 'user' 
-                ? 'bg-[var(--color-primary)] text-white rounded-br-none shadow-[var(--color-primary)]/10' 
-                : 'glass-card border border-[var(--glass-border)] text-gray-100 rounded-bl-none'
-              }`}
-            >
-              {msg.text}
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-           <div className="flex justify-start">
-             <div className="glass-card px-4 py-3 rounded-2xl rounded-bl-none flex gap-1 items-center">
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-             </div>
-           </div>
-        )}
-      </div>
-
-      {/* Input Area */}
-      <form onSubmit={handleSendMessage} className="glass-card p-2 rounded-2xl flex items-center gap-2 border border-[var(--glass-border)] shadow-2xl relative z-20">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask anything..."
-          className="flex-1 bg-transparent border-none outline-none text-white px-4 placeholder-gray-500 font-medium"
-        />
-        <button 
-          type="submit" 
-          disabled={!input.trim()}
-          className="p-3 bg-[var(--color-primary)] rounded-xl text-white hover:bg-[var(--color-primary-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--color-primary)]/20"
-        >
-          <Send size={20} />
-        </button>
-      </form>
-    </div>
-  );
-}
+  return <section className="chat-shell">
+    <header className="chat-header"><div className="page-header__lead"><button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back"><ArrowLeft size={20} /></button><div><p className="context-label">Learning assistant</p><h1>Study AI</h1><p>Turn a difficult topic into a practical next step.</p></div></div><span className="preview-badge"><Sparkle size={16} /> Preview</span></header>
+    <div className="chat-feed app-scrollbar" aria-live="polite"><div className="assistant-intro"><span className="assistant-intro__icon"><Brain size={28} weight="duotone" /></span><h2>Start with the part that feels unclear.</h2><p>This is a UI preview; prompts stay in this browser session and are not sent to an AI service.</p><div className="assistant-notice"><Info size={17} /><span>No AI backend is connected yet.</span></div><div className="suggestion-list">{suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => setInput(suggestion)}>{suggestion}</button>)}</div></div>{messages.map((message) => <div key={message.id} className={`chat-message chat-message--${message.sender}`}>{message.text}</div>)}{typing && <div className="chat-message chat-message--ai" role="status">Preparing preview…</div>}<div ref={endRef} /></div>
+    <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); send(input); }}><label htmlFor="study-question" className="sr-only">Ask the study assistant</label><input id="study-question" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ask about a concept or study plan" /><button type="submit" disabled={!input.trim() || typing} aria-label="Send question"><ArrowUp size={19} weight="bold" /></button></form>
+  </section>;
+};
 
 export default Ai;

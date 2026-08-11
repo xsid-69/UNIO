@@ -1,9 +1,14 @@
-import './config/env.js';  // Import env config first
+import './config/env.js';
 import app from './src/app.js';
 import connectDB from './db/db.js';
-import "./config/passport.config.js";
+import { validateEnvironment } from './config/env.js';
 
-connectDB();
-app.listen(process.env.PORT || 3000,()=>{
-    console.log(`Server is running on port ${process.env.PORT || 3000}`);
-})
+validateEnvironment();
+await connectDB();
+
+if (!process.env.VERCEL) {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => console.log(`Server is running on port ${port}`));
+}
+
+export default app;

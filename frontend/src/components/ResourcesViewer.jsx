@@ -1,378 +1,221 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Download, ArrowLeft, ZoomIn, ZoomOut, RotateCw, Home, Maximize2, Minimize2, RefreshCw, Eye, FileText, MoreVertical, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowSquareOut, ArrowsIn, ArrowsOut, CaretLeft, CaretRight, DownloadSimple, FilePdf, List, MagnifyingGlassMinus, MagnifyingGlassPlus, X } from '@phosphor-icons/react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
+import { createValidatedPdfBlob, getDirectPdfUrl, getPdfFileName, getPdfProxyParams, PDF_WORKER_SRC } from '../lib/pdf';
+import StatePanel from './ui/StatePanel';
 
-// Set up the worker for react-pdf
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+
+const hasUsablePdf = (note) => typeof note?.pdfUrl === 'string' && note.pdfUrl.trim().length > 0;
 
 const ResourcesViewer = () => {
   const { subjectId } = useParams();
+  const { state } = useLocation();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const viewportRef = useRef(null);
   const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedNote, setSelectedNote] = useState(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-
-  // PDF Viewer State
-  const [numPages, setNumPages] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
+  const [scale, setScale] = useState(1);
+  const [viewportWidth, setViewportWidth] = useState(720);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(null);
-  const containerRef = useRef(null);
+  const [pdfError, setPdfError] = useState('');
+  const [previewSource, setPreviewSource] = useState('');
+  const [renderMode, setRenderMode] = useState('pdfjs');
+  const [previewAttempt, setPreviewAttempt] = useState(0);
 
-  useEffect(() => {
-    fetchNotesForSubject();
-  }, [subjectId]);
-
-  // Reset PDF state when selected note changes
-  useEffect(() => {
-    if (selectedNote) {
+  const selectNote = useCallback((note) => {
+    if (!hasUsablePdf(note)) {
+      setSelectedNote(null);
       setPageNumber(1);
-      setNumPages(null);
-      setScale(1.0);
-      setPdfLoading(true);
+      setNumPages(0);
+      setScale(1);
+      setPdfError('');
+      setPdfLoading(false);
+      setPreviewSource('');
+      return;
     }
-  }, [selectedNote]);
-
-  // Handle Container Resize to fit PDF width
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => resizeObserver.disconnect();
-  }, [sidebarVisible, isFullscreen, selectedNote]); // Re-measure when layout changes
-
-  const fetchNotesForSubject = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notes/subject/${encodeURIComponent(subjectId)}`);
-
-      if (response.data.success) {
-        setNotes(response.data.notes);
-        if (response.data.notes.length > 0) {
-          setSelectedNote(response.data.notes[0]);
-        }
-      } else {
-        setError(response.data.message || 'Failed to fetch notes');
-      }
-    } catch (err) {
-      console.error('Error fetching notes:', err);
-      if (err.response?.status === 401) {
-        setError('Please log in to view notes');
-      } else if (err.response?.status === 404) {
-        setError('Subject not found or no notes available');
-      } else {
-        setError(err.response?.data?.message || 'Failed to fetch notes for this subject');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNoteSelect = (note) => {
     setSelectedNote(note);
-    if (window.innerWidth < 1024) {  // Mobile breakpoint
-      setSidebarVisible(false);
+    setPageNumber(1);
+    setNumPages(0);
+    setScale(1);
+    setPreviewAttempt((attempt) => attempt + 1);
+    setDrawerOpen(false);
+  }, []);
+
+  const fetchNotes = useCallback(async (signal) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notes/subject/${encodeURIComponent(subjectId)}`, { signal });
+      const list = response.data?.success && Array.isArray(response.data.notes) ? response.data.notes : [];
+      setNotes(list);
+      selectNote(list.find(hasUsablePdf) || null);
+      if (!response.data?.success) setError(response.data?.message || 'Notes could not be loaded.');
+    } catch (requestError) {
+      if (requestError.code !== 'ERR_CANCELED') setError(requestError.response?.status === 401 ? 'Sign in to view these notes.' : requestError.response?.data?.message || 'Notes could not be loaded.');
+    } finally {
+      if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [selectNote, subjectId]);
 
-  const handleDownload = (pdfUrl, title) => {
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `${title}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchNotes(controller.signal);
+    return () => controller.abort();
+  }, [fetchNotes]);
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
+  useEffect(() => {
+    if (!selectedNote) return undefined;
+    const controller = new AbortController();
+    const source = selectedNote.pdfUrl.trim();
+    const directSource = getDirectPdfUrl(source);
+    const proxySource = `${import.meta.env.VITE_BACKEND_URL}/api/notes/file?${new URLSearchParams(getPdfProxyParams(source)).toString()}`;
+    let objectUrl = '';
+    let active = true;
 
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
+    setPreviewSource('');
+    setRenderMode('pdfjs');
+    setPdfError('');
+    setPdfLoading(true);
+    setNumPages(0);
+
+    const preparePreview = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notes/file`, {
+          params: getPdfProxyParams(source),
+          responseType: 'arraybuffer',
+          signal: controller.signal,
+        });
+        const blob = await createValidatedPdfBlob(response.data);
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewSource(objectUrl);
+      } catch (requestError) {
+        if (!active || requestError.code === 'ERR_CANCELED') return;
+        setPdfLoading(false);
+        const fallbackSource = directSource || proxySource;
+        if (fallbackSource) {
+          setPreviewSource(fallbackSource);
+          setRenderMode('native');
+          setPdfError('The enhanced preview was unavailable, so UNIO opened the PDF in your browser viewer.');
+        } else {
+          setRenderMode('error');
+          setPdfError(requestError.message || 'The PDF could not be prepared. You can still retry or download the source.');
+        }
+      }
+    };
+
+    void preparePreview();
+    return () => {
+      active = false;
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [previewAttempt, selectedNote]);
+
+  useEffect(() => {
+    if (!viewportRef.current) return undefined;
+    const observer = new ResizeObserver(([entry]) => setViewportWidth(entry.contentRect.width));
+    observer.observe(viewportRef.current);
+    return () => observer.disconnect();
+  }, [fullscreen, previewSource, selectedNote]);
+
+  useEffect(() => {
+    if (!fullscreen && !drawerOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') { setFullscreen(false); setDrawerOpen(false); }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [drawerOpen, fullscreen]);
+
+  const usableNotes = useMemo(() => notes.filter(hasUsablePdf), [notes]);
+  const subjectName = state?.subjectName || 'Subject notes';
+  const selectedSource = selectedNote?.pdfUrl?.trim() || '';
+  const directSource = getDirectPdfUrl(selectedSource);
+  const proxyDownloadUrl = selectedSource ? `${import.meta.env.VITE_BACKEND_URL}/api/notes/file?${new URLSearchParams(getPdfProxyParams(selectedSource)).toString()}` : '';
+  const downloadUrl = previewSource || directSource || proxyDownloadUrl;
+  const nativeMode = renderMode === 'native';
+  const retryPreview = () => setPreviewAttempt((attempt) => attempt + 1);
+  const switchToNativeFallback = (message) => {
     setPdfLoading(false);
+    setPdfError(message);
+    setRenderMode('native');
+    setNumPages(0);
   };
 
-  // Render loading state
-  const renderLoadingState = () => (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-        <div className="text-lg text-white">Loading content...</div>
-      </div>
-    </div>
-  );
-
-  // Render error state
-  const renderErrorState = () => (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-center">
-        <div className="text-red-500 text-xl mb-4">Error: {error}</div>
-        <button
-          onClick={() => navigate('/subjects')}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
-        >
-          <ArrowLeft size={20} />
-          Back to Subjects
-        </button>
-      </div>
-    </div>
-  );
-
-  // Render PDF viewer
-  const renderPdfViewer = () => (
-    <div className="flex-1 flex flex-col h-full bg-[#1a1a1a]">
-      {/* PDF Controls */}
-      <div className="bg-[#0a0a0a] border-b border-gray-800 p-2 md:p-4 flex flex-col md:flex-row items-center justify-between gap-3 sticky top-0 z-20 shadow-md">
-        {/* Left: Title */}
-        <div className="flex items-center gap-3 w-full md:w-auto overflow-hidden">
-          <div className="flex items-center gap-2 min-w-0">
-            <FileText className="text-blue-400 flex-shrink-0" size={20} />
-            <h3 className="text-lg font-medium truncate text-white">{selectedNote.title}</h3>
-          </div>
-        </div>
-
-        {/* Center: Pagination */}
-        <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
-          <button
-            disabled={pageNumber <= 1}
-            onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
-            className="p-1.5 hover:bg-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-white"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className="text-sm font-medium text-gray-300 px-2 min-w-[60px] text-center">
-            {pageNumber} / {numPages || '--'}
-          </span>
-          <button
-            disabled={pageNumber >= numPages}
-            onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
-            className="p-1.5 hover:bg-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-white"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1 md:gap-2">
-           <button
-            onClick={() => setScale(prev => Math.max(prev - 0.2, 0.5))}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
-            title="Zoom Out"
-          >
-            <ZoomOut size={16} />
-          </button>
-          <button
-            onClick={() => setScale(prev => Math.min(prev + 0.2, 3.0))}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
-            title="Zoom In"
-          >
-            <ZoomIn size={16} />
-          </button>
-          
-          <div className="w-px h-6 bg-gray-700 mx-1"></div>
-
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white hidden md:block" // Hidden on really small screens if crowded
-            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-          >
-            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
-          <button
-            onClick={() => handleDownload(selectedNote.pdfUrl, selectedNote.title)}
-            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-2 text-white text-sm font-medium transition-colors"
-            title="Download PDF"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">Download</span>
-          </button>
-        </div>
-      </div>
-
-      {/* PDF Content Area */}
-      <div 
-        className={`flex-1 overflow-auto bg-[#1a1a1a] flex justify-center relative ${isFullscreen ? 'fixed inset-0 z-50 pt-16' : ''}`}
-        ref={containerRef}
-      >
-        <div className="py-4 md:py-8 min-h-full w-full flex justify-center">
-          <Document
-            file={`${import.meta.env.VITE_BACKEND_URL}/api/notes/file?url=${encodeURIComponent(selectedNote.pdfUrl)}`}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={(err) => {
-              console.error("PDF Load Error:", err);
-              // Set a state or just let the user see it in the UI
-              window.alert(`PDF Error: ${err.message}`); // proactive alert for the user
-            }}
-            error={(err) => ( // React-pdf error render prop can take a function sometimes, or we rely on the component state if we managed it. 
-               // actually Document 'error' prop is a React node, not a function receiving the error. 
-               // We need to capture the error in state to show it.
-               <div className="flex flex-col items-center justify-center p-12 text-center max-w-md">
-                 <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                 <h3 className="text-xl font-bold text-white mb-2">Unavailable</h3>
-                 <p className="text-gray-400">Unable to load this document.</p>
-                 <p className="text-red-400 text-sm mt-2 font-mono bg-black/50 p-2 rounded">{err ? err.message : 'Unknown error'}</p>
-                 <button 
-                  onClick={() => handleDownload(selectedNote.pdfUrl, selectedNote.title)}
-                  className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white text-sm"
-                 >
-                   Download File
-                 </button>
-               </div>
-            )}
-            className="flex flex-col items-center shadow-2xl"
-          >
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              width={containerWidth ? Math.min(containerWidth * 0.95, 1000) : undefined} // Responsive width
-              className="bg-white shadow-lg mb-4"
-              renderAnnotationLayer={false}
-              renderTextLayer={false} // Disable text layer for better performance/less visual clutter if fonts missing
-            />
-          </Document>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSelectNoteState = () => (
-    <div className="flex-1 flex items-center justify-center bg-[#060010]">
-      <div className="text-center text-gray-400 p-8">
-        <FileText size={64} className="mx-auto mb-4 text-gray-700" />
-        <div className="text-xl mb-2 text-white">Select a document</div>
-        <div className="text-sm text-gray-500">Choose a note from the sidebar to start reading</div>
-      </div>
-    </div>
-  );
+  if (loading) return <StatePanel type="loading" title="Loading study material" description="Finding the notes available for this subject." />;
+  if (error) return <StatePanel type="error" title="Notes are unavailable" description={error} action={<div className="state-actions"><button type="button" className="btn-secondary" onClick={() => fetchNotes()}>Try again</button><button type="button" className="btn-ghost" onClick={() => navigate('/subjects')}>Back to subjects</button></div>} />;
+  if (!notes.length) return <StatePanel title="No notes here yet" description="This subject does not have published study material yet." action={<button type="button" className="btn-secondary" onClick={() => navigate('/subjects')}>Back to subjects</button>} />;
 
   return (
-    <div className="h-[calc(100vh-64px)] overflow-hidden bg-[#060010] flex flex-col text-white">
-      {/* Subject Header (hidden in fullscreen) */}
-      {!isFullscreen && (
-        <div className="bg-[#0a0a0a] border-b border-gray-800 p-3 md:p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 md:gap-4">
-              <button
-                onClick={() => navigate('/subjects')}
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors"
-                title="Back to Subjects"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="text-lg md:text-2xl font-bold capitalize truncate max-w-[200px] md:max-w-none">{subjectId} Notes</h1>
+    <section className={`reader-shell ${fullscreen ? 'reader-shell--fullscreen' : ''}`} aria-label={`${subjectName} document reader`}>
+      <header className="reader-header">
+        <div className="reader-header__lead">
+          <button type="button" className="icon-button" onClick={() => navigate('/subjects')} aria-label="Back to subjects"><ArrowLeft size={20} /></button>
+          <div><p className="context-label">{notes.length} {notes.length === 1 ? 'document' : 'documents'}</p><h1>{subjectName}</h1></div>
+        </div>
+        <button type="button" className="btn-secondary reader-list-button" onClick={() => setDrawerOpen(true)}><List size={19} /> Documents</button>
+      </header>
+
+      <div className="reader-workspace">
+        <aside className={`reader-sidebar ${drawerOpen ? 'is-open' : ''}`} aria-label="Available documents">
+          <div className="reader-sidebar__header"><div><p className="context-label">Library</p><h2>Documents</h2></div><button type="button" className="icon-button reader-sidebar__close" onClick={() => setDrawerOpen(false)} aria-label="Close document list"><X size={19} /></button></div>
+          <div className="reader-sidebar__list app-scrollbar">
+            {notes.map((note) => {
+              const available = hasUsablePdf(note);
+              const noteId = note._id || note.pdfUrl || note.title;
+              return <button type="button" key={noteId} className={`document-item ${selectedNote === note ? 'is-active' : ''}`} onClick={() => selectNote(note)} aria-pressed={selectedNote === note} disabled={!available}><FilePdf size={22} weight="duotone" /><span><strong>{note.title}</strong><small>{available ? `${note.branch} · Semester ${note.semester}` : 'Preview unavailable'}</small></span></button>;
+            })}
+          </div>
+        </aside>
+        {drawerOpen && <button type="button" className="reader-scrim" onClick={() => setDrawerOpen(false)} aria-label="Close document list" />}
+
+        <div className="reader-document">
+          <div className="reader-toolbar" aria-label="PDF controls">
+            <div className="reader-toolbar__title"><FilePdf size={20} weight="duotone" /><strong>{selectedNote?.title || 'No preview available'}</strong></div>
+            <div className="reader-toolbar__pages">
+              <button type="button" className="icon-button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={!selectedNote || nativeMode || pageNumber <= 1} aria-label="Previous page"><CaretLeft size={18} /></button>
+              <span aria-live="polite">{nativeMode ? 'Native preview' : `${selectedNote ? pageNumber : '—'} / ${numPages || '—'}`}</span>
+              <button type="button" className="icon-button" onClick={() => setPageNumber((page) => Math.min(numPages || page, page + 1))} disabled={nativeMode || !numPages || pageNumber >= numPages} aria-label="Next page"><CaretRight size={18} /></button>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-400 hidden sm:block">
-                {notes.length} note{notes.length !== 1 ? 's' : ''}
-              </div>
-              <button
-                onClick={() => setSidebarVisible(!sidebarVisible)}
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors relative"
-                title="Toggle Sidebar"
-              >
-                {sidebarVisible ? <X size={20} /> : <MoreVertical size={20} />}
-                {!sidebarVisible && notes.length > 0 && (
-                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                     <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                   </span>
-                )}
-              </button>
+            <div className="reader-toolbar__actions">
+              <button type="button" className="icon-button" onClick={() => setScale((value) => Math.max(.6, +(value - .15).toFixed(2)))} disabled={!selectedNote || nativeMode || scale <= .6} aria-label="Zoom out"><MagnifyingGlassMinus size={18} /></button>
+              <span className="reader-zoom" aria-live="polite">{nativeMode ? 'Auto' : `${Math.round(scale * 100)}%`}</span>
+              <button type="button" className="icon-button" onClick={() => setScale((value) => Math.min(2.4, +(value + .15).toFixed(2)))} disabled={!selectedNote || nativeMode || scale >= 2.4} aria-label="Zoom in"><MagnifyingGlassPlus size={18} /></button>
+              {downloadUrl && <a className="icon-button reader-download" href={downloadUrl} download={getPdfFileName(selectedNote?.title)} aria-label="Download PDF"><DownloadSimple size={18} /></a>}
+              {downloadUrl && <a className="icon-button" href={downloadUrl} target="_blank" rel="noreferrer" aria-label="Open PDF in a new tab"><ArrowSquareOut size={18} /></a>}
+              <button type="button" className="icon-button reader-fullscreen" onClick={() => setFullscreen((value) => !value)} aria-label={fullscreen ? 'Exit full screen reader' : 'Open full screen reader'}>{fullscreen ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}</button>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Main Content Layout */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Sidebar */}
-        <div 
-          className={`
-            fixed md:static inset-y-0 left-0 z-30 w-80 
-            bg-[#050505] border-r border-gray-800 
-            transform transition-transform duration-300 ease-in-out
-            ${sidebarVisible ? 'translate-x-0' : '-translate-x-full md:hidden'}
-            flex flex-col
-          `}
-        >
-           {/* Sidebar Header with Close button for mobile */}
-           <div className="p-4 border-b border-gray-800 flex justify-between items-center md:hidden">
-              <h2 className="font-semibold">Documents</h2>
-              <button onClick={() => setSidebarVisible(false)} className="p-1 hover:bg-gray-800 rounded">
-                <X size={20} />
-              </button>
-           </div>
-           
-           <div className="overflow-y-auto flex-1 p-3 space-y-2">
-              {notes.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No notes available</div>
-              ) : (
-                notes.map((note) => (
-                  <div
-                    key={note._id}
-                    onClick={() => handleNoteSelect(note)}
-                    className={`
-                      p-3 rounded-lg cursor-pointer border transition-all
-                      ${selectedNote?._id === note._id 
-                        ? 'bg-blue-900/20 border-blue-500/50' 
-                        : 'bg-gray-900 border-gray-800 hover:border-gray-700'}
-                    `}
-                  >
-                    <div className="font-medium text-sm truncate text-white">{note.title}</div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-400">
-                      <span>Sem: {note.semester}</span>
-                      <span className="uppercase">{note.branch}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-           </div>
-        </div>
-        
-        {/* Mobile Backdrop for Sidebar */}
-        {sidebarVisible && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-20 md:hidden"
-            onClick={() => setSidebarVisible(false)}
-          ></div>
-        )}
-
-        {/* Viewer Area */}
-        <div className="flex-1 w-full bg-[#1a1a1a] relative flex flex-col">
-           {loading ? renderLoadingState() :
-            error ? renderErrorState() :
-            notes.length === 0 ? (
-               <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                 <div className="text-6xl mb-4">📂</div>
-                 <h2 className="text-2xl font-bold mb-2">No Notes Found</h2>
-                 <p className="text-gray-400">This subject doesn't have any materials yet.</p>
-               </div>
-            ) :
-            selectedNote ? renderPdfViewer() : renderSelectNoteState()
-           }
+          <div className={`reader-viewport app-scrollbar ${nativeMode ? 'reader-viewport--native' : ''}`} ref={viewportRef}>
+            {!selectedNote ? <StatePanel compact title="No preview available" description="None of these notes currently has a usable PDF source." action={<button type="button" className="btn-secondary" onClick={() => navigate('/subjects')}>Back to subjects</button>} /> : renderMode === 'error' ? (
+              <StatePanel compact type="error" title="Preview unavailable" description={pdfError} action={<div className="state-actions"><button type="button" className="btn-secondary" onClick={retryPreview}>Retry preview</button>{downloadUrl && <a className="btn-ghost" href={downloadUrl} download={getPdfFileName(selectedNote.title)}>Download PDF</a>}<button type="button" className="btn-ghost" onClick={() => usableNotes.length > 1 ? setDrawerOpen(true) : navigate('/subjects')}>{usableNotes.length > 1 ? 'Choose another document' : 'Back to subjects'}</button></div>} />
+            ) : nativeMode && previewSource ? (
+              <div className="native-pdf-preview"><p className="native-pdf-notice">{pdfError || 'Using your browser’s built-in PDF viewer.'}</p><iframe className="native-pdf-frame" src={previewSource} title={`${selectedNote.title} PDF`} /></div>
+            ) : (
+              <>
+                {pdfLoading && <div className="reader-status" role="status"><span className="is-spinning"><FilePdf size={25} /></span><span>Preparing the document…</span></div>}
+                {previewSource && <Document key={`${selectedNote._id || selectedNote.pdfUrl}-${previewAttempt}`} file={previewSource} onLoadSuccess={({ numPages: pages }) => { setNumPages(pages); setPdfLoading(false); }} onLoadError={() => switchToNativeFallback('The enhanced renderer could not open this PDF, so UNIO switched to your browser viewer.')} loading={null} error={null}>
+                  <Page pageNumber={pageNumber} scale={scale} width={Math.max(260, Math.min(viewportWidth - 48, 960))} renderAnnotationLayer={false} renderTextLayer={false} className="reader-page" onRenderError={() => switchToNativeFallback('This page could not be drawn by the enhanced renderer, so UNIO switched to your browser viewer.')} />
+                </Document>}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

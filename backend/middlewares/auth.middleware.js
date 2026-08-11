@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import userModel from '../models/user.model.js'; // Assuming user.model.js is correctly imported
+import userModel from '../models/user.model.js';
+import { getAuthCookieClearOptions } from '../config/auth-cookie.js';
 
 async function isAuthenticated (req , res , next){
   try {
@@ -27,7 +28,7 @@ async function isAuthenticated (req , res , next){
       console.warn('Received token with invalid format, clearing cookie (if any)');
       if (req.cookies && req.cookies.token) {
         // clear malformed cookie so client can recover
-        res.clearCookie('token');
+        res.clearCookie('token', getAuthCookieClearOptions());
       }
       return res.status(401).json({ message: 'Invalid token format, please login again' });
     }
@@ -45,7 +46,7 @@ async function isAuthenticated (req , res , next){
     console.error('JWT verification error:', err); // Log the error for debugging
     // If there was a cookie present, clear it to help client recover
     if (req.cookies && req.cookies.token) {
-      try { res.clearCookie('token'); } catch (e) { /* ignore */ }
+      try { res.clearCookie('token', getAuthCookieClearOptions()); } catch { /* ignore */ }
     }
     return res.status(401).json({ message: 'Invalid token, Login Again' });
   }

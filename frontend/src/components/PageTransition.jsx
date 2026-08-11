@@ -1,43 +1,19 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    scale: 0.98,
-  },
-  in: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-        duration: 0.4,
-        ease: [0.25, 1, 0.5, 1] // Cubic bezier similar to iOS
-    }
-  },
-  out: {
-    opacity: 0,
-    y: -20,
-    scale: 0.98,
-    transition: {
-        duration: 0.2,
-        ease: 'easeIn'
-    }
-  }
-};
+const MotionDiv = motion.div;
 
 const PageTransition = ({ children }) => {
+  const reduced = useReducedMotion();
   return (
-    <motion.div
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      className="w-full h-full"
+    <MotionDiv
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduced ? undefined : { opacity: 0, y: -5 }}
+      transition={{ duration: reduced ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full"
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   );
 };
 

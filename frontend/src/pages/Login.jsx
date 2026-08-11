@@ -1,140 +1,137 @@
-import React, { useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle, Eye, EyeSlash, GoogleLogo } from '@phosphor-icons/react';
 import { loginUser } from '../store/authSlice';
-import { Link } from 'react-router-dom';
 import Spinner from '../components/Spinner';
-import { useAuth } from '../context/AuthContext';
-import { GridBeams } from '../components/magicui/grid-beams';
+import BrandMark from '../components/ui/BrandMark';
 
 const Login = () => {
-  const { register, handleSubmit } = useForm();
+  const [showPassword, setShowPassword] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ mode: 'onBlur' });
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, user } = useSelector((state) => state.auth);
-  const { login: contextLogin } = useAuth();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const loginHandler = (data) => {
-    dispatch(loginUser(data));
+  const loginHandler = async (data) => {
+    try {
+      await dispatch(loginUser(data)).unwrap();
+      navigate('/');
+    } catch {
+      return;
+    }
   };
 
-  useEffect(() => {
-    if (user) {
-      contextLogin();
-      navigate('/');
-    }
-  }, [user, navigate, contextLogin]);
+  const openGoogleAuth = () => {
+    window.open(`${import.meta.env.VITE_BACKEND_URL}/api/auth/google`, '_self');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center w-full relative overflow-hidden bg-[var(--color-background)]">
-      <GridBeams className="absolute inset-0 z-0 opacity-40" />
-      
-      {/* Background Glows */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[var(--color-primary)] opacity-[0.05] blur-[120px]" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600 opacity-[0.05] blur-[120px]" />
-
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center w-full max-w-6xl mx-auto p-4 lg:p-8 gap-10">
-        
-        {/* Left Section: Welcome */}
-        <div className="flex-1 text-center lg:text-left animate-[fadeIn_0.5s_ease-out]">
-          <div className="text-4xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-[var(--color-primary)] to-blue-400 bg-clip-text text-transparent">UNIO</span>
-          </div>
-          <h1 className="text-5xl lg:text-7xl font-bold mb-6 text-[var(--color-text-main)] tracking-tight">
-            Welcome Back
-          </h1>
-          <p className="text-lg text-[var(--color-text-muted)] mb-8 max-w-md mx-auto lg:mx-0 leading-relaxed">
-            Access your personalized learning dashboard, resources, and AI assistant all in one place.
+    <main className="auth-shell">
+      <section className="auth-story" aria-labelledby="login-story-title">
+        <BrandMark />
+        <div className="auth-story__copy">
+          <h1 id="login-story-title">Welcome back to your study flow.</h1>
+          <p>
+            Pick up where you left off with your subjects, saved resources, and
+            focused tools in one calm workspace.
           </p>
         </div>
+        <ul className="relative z-[1] grid gap-3 text-[var(--color-text-muted)]" aria-label="UNIO benefits">
+          {['Your learning dashboard, ready', 'Resources organised by subject', 'One account across every study tool'].map((item) => (
+            <li key={item} className="flex items-center gap-3">
+              <CheckCircle size={20} weight="fill" className="shrink-0 text-[var(--color-primary)]" aria-hidden="true" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        {/* Right Section: Sign In Form */}
-        <div className="w-full max-w-md glass-card p-8 md:p-10 rounded-3xl shadow-2xl relative animate-[slideInRight_0.5s_ease-out]">
-           
-           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-50 blur-[1px]"></div>
+      <section className="auth-panel" aria-labelledby="login-form-title">
+        <div className="auth-form">
+          <h2 id="login-form-title">Sign in</h2>
+          <p className="auth-form__intro">Enter your details to continue to UNIO.</p>
 
-          <h2 className="text-3xl font-bold text-center mb-8 text-[var(--color-text-main)] font-display">Sign In</h2>
-          
-          <form onSubmit={handleSubmit(loginHandler)} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1.5">Email Address</label>
-              <input
-                {...register('email', { required: true })}
-                type="email"
-                id="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="modern-input w-full p-3.5 rounded-xl text-white placeholder-gray-500"
-              />
+          <form onSubmit={handleSubmit(loginHandler)} noValidate aria-busy={loading}>
+            <div className="auth-form__fields">
+              <div>
+                <label className="field-label" htmlFor="email">Email address</label>
+                <input
+                  {...register('email', {
+                    required: 'Enter your email address.',
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: 'Enter a valid email address.',
+                    },
+                  })}
+                  className="field-control"
+                  type="email"
+                  id="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="you@example.com"
+                  aria-invalid={errors.email ? 'true' : 'false'}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
+                />
+                {errors.email && <p className="field-error" id="email-error">{errors.email.message}</p>}
+              </div>
+
+              <div>
+                <label className="field-label" htmlFor="password">Password</label>
+                <div className="relative">
+                  <input
+                    {...register('password', { required: 'Enter your password.' })}
+                    className="field-control pr-14"
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    aria-invalid={errors.password ? 'true' : 'false'}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
+                  />
+                  <button
+                    type="button"
+                    className="icon-button absolute right-1 top-1/2 -translate-y-1/2"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? <EyeSlash size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+                  </button>
+                </div>
+                {errors.password && <p className="field-error" id="password-error">{errors.password.message}</p>}
+              </div>
+
+              {error && <div className="alert alert--error" role="alert">{error}</div>}
+
+              <button type="submit" disabled={loading} className="btn-primary w-full">
+                {loading ? (
+                  <><Spinner size={0.9} thickness={2} speed={700} /><span>Signing in…</span></>
+                ) : 'Sign in'}
+              </button>
             </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--color-text-muted)] mb-1.5">Password</label>
-              <input
-                {...register('password', { required: true })}
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="modern-input w-full p-3.5 rounded-xl text-white placeholder-gray-500"
-              />
-            </div>
-            
-            {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm text-center">{error}</div>}
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full py-3.5 rounded-xl font-bold shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-[var(--color-primary)]/40 transition-all duration-300 flex items-center justify-center gap-2 mt-4"
-            >
-              {loading ? (
-                <>
-                  <Spinner size={0.9} thickness={2} speed={700} />
-                  <span>Signing In...</span>
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
           </form>
 
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[var(--color-border)]"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[var(--glass-bg)] text-[var(--color-text-muted)]">Or continue with</span>
-            </div>
-          </div>
+          <div className="auth-form__divider" aria-hidden="true">or continue with</div>
+          <button type="button" className="btn-secondary w-full" onClick={openGoogleAuth}>
+            <GoogleLogo size={20} weight="bold" aria-hidden="true" />
+            Continue with Google
+          </button>
 
-          <div>
-            <button
-              onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/auth/google`, "_self")}
-              type="button"
-              className="w-full py-3.5 rounded-xl font-semibold text-white bg-[var(--color-surface)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-all flex items-center justify-center gap-3 group"
-            >
-              <svg className="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12.0003 4.75C14.0213 4.75 15.8013 5.49062 17.1413 6.71937L20.0003 3.86062C17.9413 1.97062 15.1713 0.75 12.0003 0.75C7.72031 0.75 4.00031 3.14062 2.26031 6.71937L6.03031 9.67937C6.84031 7.06937 9.25031 4.75 12.0003 4.75Z" fill="#EA4335"/>
-                <path d="M21.9997 12.25C21.9997 11.59 21.9397 10.98 21.8297 10.38H12.0003V14.38H17.4003C17.1897 15.57 16.4397 16.59 15.3497 17.29L19.1197 20.25C21.3097 18.27 22.6997 15.45 22.6997 12.25H21.9997V12.25Z" fill="#4285F4"/>
-                <path d="M6.03031 9.67937L2.26031 6.71937C1.56031 8.41937 1.18031 10.28 1.18031 12.25C1.18031 14.22 1.56031 16.0806 2.26031 17.7806L6.03031 14.8206C5.79031 14.1606 5.66031 13.42 5.66031 12.25C5.66031 11.08 5.79031 10.34 6.03031 9.67937Z" fill="#FBBC05"/>
-                <path d="M12.0003 23.75C15.1713 23.75 17.9413 22.53 20.0003 20.6406L17.1413 17.29C15.8013 18.5194 14.0213 19.25 12.0003 19.25C9.25031 19.25 6.84031 16.9306 6.03031 14.3206L2.26031 17.7806C4.00031 21.3594 7.72031 23.75 12.0003 23.75Z" fill="#34A853"/>
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-          </div>
-
-          <p className="text-center text-sm text-[var(--color-text-muted)] mt-8">
-            Don't have an account?{' '}
-            <button
-              onClick={() => navigate('/register')}
-              className="font-semibold cursor-pointer text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-            >
-              Sign up
-            </button>
+          <p className="mt-7 text-center text-sm text-[var(--color-text-muted)]">
+            New to UNIO?{' '}
+            <Link className="font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]" to="/register">
+              Create an account
+            </Link>
           </p>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

@@ -1,155 +1,33 @@
-import React, { useState } from 'react';
+import { createElement } from 'react';
+import { ArrowRight, BookOpenText, Books, Brain, CalendarBlank, Exam, FileText } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import SpotlightCard from '../components/Spotlight';
-import Autoslide from '../components/Autoslide';
-import { IoNewspaperOutline } from "react-icons/io5";
-import { GrNotes } from "react-icons/gr";
-import { BsRobot } from "react-icons/bs";
-import { FaBookOpen, FaRoad } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 
+const studyLinks = [
+  { to: '/notespage', title: 'Course notes', copy: 'Read material organised by subject.', icon: BookOpenText },
+  { to: '/pyqspage', title: 'Past papers', copy: 'Prepare with previous exam papers.', icon: Exam },
+  { to: '/syllabus', title: 'Syllabus', copy: 'Keep your official course scope close.', icon: FileText },
+  { to: '/ai', title: 'Study AI', copy: 'Break a difficult topic into a first step.', icon: Brain },
+];
+
 const Home = () => {
-  const [activeTab, setActiveTab] = useState('Trending');
   const { user } = useSelector((state) => state.auth);
-
-  return (
-    <div className="mx-auto max-w-7xl animate-[fadeIn_0.5s_ease-out]">
-      {/* Welcome Block */}
-      <div className="mt-5 mb-8">
-        <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Hello, {user?.name || 'Student'}</h1>
-        <p className="text-[var(--color-text-muted)] mt-2">Welcome back to UNIO. Ready to learn?</p>
-      </div>
-
-      <div id='slider' className="w-full h-[22vh] md:h-[30vh] glass-card rounded-3xl mb-10 overflow-hidden relative border border-[var(--glass-border)] shadow-2xl">
-        <div className="absolute top-4 left-6 z-10 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-white border border-white/10">Featured</div>
-        <Autoslide />
-      </div>
-
-      {/* Tabs */} 
-      <div id='Tabs' className="mb-8 flex gap-8 border-b border-[var(--glass-border)]">
-        {['Trending', 'Resources', 'Ai'].map((tab) => (
-          <button
-            key={tab}
-            className={`pb-3 text-sm font-semibold transition-all duration-300 relative px-2
-              ${activeTab === tab 
-                ? 'text-[var(--color-primary)]' 
-                : 'text-[var(--color-text-muted)] hover:text-white'
-              }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'Ai' ? 'AI Assistant' : tab}
-            {activeTab === tab && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--color-primary)] rounded-t-full shadow-[0_-2px_6px_rgba(19,196,163,0.4)]" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid Content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {activeTab === 'Trending' && (
-          <>
-             <Link to="/news" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-opacity">
-                   <IoNewspaperOutline className="text-5xl" />
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">Trending News</h2>
-               </SpotlightCard>
-             </Link>
-             <Link to="/notes" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-blue-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                   <GrNotes className="text-5xl" />
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">Popular Notes</h2>
-               </SpotlightCard>
-             </Link>
-             <Link to="/ai" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-purple-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                   <BsRobot className="text-5xl" />
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">AI Chat</h2>
-               </SpotlightCard>
-             </Link>
-             <Link to="/books" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-yellow-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                   <FaBookOpen className="text-5xl"/>
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">Top Books</h2>
-               </SpotlightCard>
-             </Link>
-          </>
-        )}
-
-        {activeTab === 'Ai' && (
-          <>
-            <Link to="/ai" className='block h-full col-span-1 md:col-span-2 group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors bg-gradient-to-br from-[var(--glass-bg)] to-purple-900/10">
-                  <div className="bg-purple-500/10 p-4 rounded-2xl w-fit text-purple-400">
-                    <BsRobot className="text-5xl" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold group-hover:translate-x-1 transition-transform">AI Assistant</h2>
-                    <p className="text-[var(--color-text-muted)] text-sm mt-2">Get instant answers and help with your studies.</p>
-                  </div>
-               </SpotlightCard>
-            </Link>
-            <Link to="#" className='block h-full col-span-1 md:col-span-2 group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors bg-gradient-to-br from-[var(--glass-bg)] to-blue-900/10">
-                   <div className="bg-blue-500/10 p-4 rounded-2xl w-fit text-blue-400">
-                     <FaRoad className="text-5xl" />
-                   </div>
-                   <div>
-                    <h2 className="text-2xl font-bold group-hover:translate-x-1 transition-transform">Learning Roadmap</h2>
-                    <p className="text-[var(--color-text-muted)] text-sm mt-2">Generate a personalized learning path.</p>
-                   </div>
-               </SpotlightCard>
-            </Link>
-          </>
-        )}
-        
-        {activeTab === 'Resources' && (
-          <>
-            <Link to="/pyqspage" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-red-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                    <IoNewspaperOutline className="text-5xl" />
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">PYQs</h2>
-               </SpotlightCard>
-            </Link>
-            <Link to="/notespage" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                 <div className="text-green-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                   <GrNotes className="text-5xl" />
-                 </div>
-                 <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">Notes</h2>
-               </SpotlightCard>
-            </Link>
-            <Link to="/syllabus" className='block h-full group'>
-               <SpotlightCard className="h-48 md:h-64 flex flex-col justify-between group-hover:bg-[var(--color-surface-hover)] transition-colors">
-                  <div className="text-orange-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                   <FaBookOpen className="text-5xl"/>
-                  </div>
-                  <h2 className="text-2xl font-bold mt-auto group-hover:translate-x-1 transition-transform">Syllabus</h2>
-               </SpotlightCard>
-            </Link>
-             {/* Placeholder for symmetry */}
-             <div className="block h-full opacity-50 pointer-events-none">
-               <SpotlightCard className="h-48 md:h-64 flex items-center justify-center border-dashed">
-                 <span className="text-[var(--color-text-muted)]">More coming soon</span>
-               </SpotlightCard>
-            </div>
-          </>
-        )}
-        
-      </div>
-    </div>
-  );
+  const firstName = user?.name?.trim().split(/\s+/)[0] || 'Student';
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const date = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
+  const ready = Boolean(user?.branch && user?.semester);
+  const destination = ready ? '/subjects' : user ? '/profiledata' : '/login';
+  return <div className="home-page">
+    <section className="study-overview" data-reveal>
+      <div className="study-overview__main"><p className="context-label">{greeting}, {firstName}</p><h1>A clear place to begin your study.</h1><p>Open the right subject, keep your syllabus nearby, and move through today’s work without hunting across different places.</p><div className="study-overview__actions"><Link to={destination} className="btn-primary">{ready ? 'Continue to subjects' : user ? 'Set up your course' : 'Create your workspace'} <ArrowRight size={18} /></Link><Link to="/archive" className="btn-secondary">Browse library</Link></div></div>
+      <aside className="study-today" aria-label="Current academic context"><div className="study-today__date"><CalendarBlank size={22} /><span>{date}</span></div><div className="study-today__course"><span>Your course</span><strong>{user?.branch || 'Course not set'}</strong><p>{user?.semester ? `Semester ${user.semester}${user?.year ? ` · Year ${user.year}` : ''}` : 'Complete your profile for a personal subject list.'}</p></div><Link to={ready ? '/subjects' : destination}>Open academic workspace <ArrowRight size={17} /></Link></aside>
+    </section>
+    <div className="section-heading" data-reveal><div><p className="context-label">Study tools</p><h2>What would you like to work on?</h2></div><Link to="/archive">View full library <ArrowRight size={17} /></Link></div>
+    <section className="study-link-grid" aria-label="Study shortcuts"><Link to={destination} className="study-link study-link--featured" data-reveal><span className="study-link__icon"><Books size={25} weight="duotone" /></span><div><span className="study-link__meta">Personal workspace</span><h3>My subjects</h3><p>{ready ? `${user.branch} · Semester ${user.semester}` : 'Set your course once and keep relevant material together.'}</p></div><ArrowRight className="study-link__arrow" size={20} /></Link>{studyLinks.map((item) => <Link to={item.to} key={item.to} className="study-link" data-reveal><span className="study-link__icon">{createElement(item.icon, { size: 23, weight: 'duotone' })}</span><div><h3>{item.title}</h3><p>{item.copy}</p></div><ArrowRight className="study-link__arrow" size={19} /></Link>)}</section>
+    <section className="reading-note" data-reveal><div><span>Study principle</span><h2>Small, focused sessions beat a crowded plan.</h2></div><p>Choose one subject, open one resource, and give it your full attention. UNIO keeps the next useful action visible.</p></section>
+  </div>;
 };
 
 export default Home;

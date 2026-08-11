@@ -1,34 +1,18 @@
-import React from 'react';
-import { FaHome } from "react-icons/fa";
-import { GrResources } from "react-icons/gr";
-import { LuTrainFront } from "react-icons/lu";
-import { IoSettingsSharp } from "react-icons/io5";
+import { createElement } from 'react';
+import { Books, Gear, House, Sparkle } from '@phosphor-icons/react';
 import { Link, useLocation } from 'react-router-dom';
 
+const items = [
+  { to: '/', label: 'Today', icon: House, matches: ['/'] },
+  { to: '/archive', label: 'Library', icon: Books, matches: ['/archive', '/notespage', '/pyqspage', '/solvedqpage', '/syllabus', '/subjects'] },
+  { to: '/ai', label: 'Study AI', icon: Sparkle, matches: ['/ai'] },
+  { to: '/settings', label: 'Settings', icon: Gear, matches: ['/settings', '/profile', '/profiledata', '/profilesettings'] },
+];
+
 const BottomNavbar = () => {
-  const location = useLocation();
-
-  const isActive = (path) => location.pathname === path;
-
-  const NavItem = ({ to, icon }) => (
-    <Link to={to} className="relative flex flex-col items-center justify-center w-full h-full">
-      <div className={`text-2xl transition-all duration-300 ${isActive(to) ? 'text-[var(--color-primary)] -translate-y-1' : 'text-gray-400'}`}>
-        {icon}
-      </div>
-      {isActive(to) && (
-        <span className="absolute bottom-2 w-1 h-1 bg-[var(--color-primary)] rounded-full animate-pulse" />
-      )}
-    </Link>
-  );
-
-  return (
-    <div className="fixed bottom-4 left-4 right-4 h-16 glass-card rounded-2xl md:hidden lg:hidden flex justify-around items-center z-50 px-2 shadow-2xl border border-[var(--color-border)]">
-      <NavItem to="/" icon={<FaHome />} />
-      <NavItem to="/archive" icon={<GrResources />} />
-      <NavItem to="/ai" icon={<LuTrainFront />} />
-      <NavItem to="/settings" icon={<IoSettingsSharp />} />
-    </div>
-  );
+  const { pathname } = useLocation();
+  const active = (item) => item.matches.some((path) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`));
+  return <nav className="bottom-nav" aria-label="Mobile navigation">{items.map((item) => <Link key={item.to} to={item.to} className={`nav-item ${active(item) ? 'is-active' : ''}`} aria-current={active(item) ? 'page' : undefined}>{createElement(item.icon, { size: 21, weight: active(item) ? 'fill' : 'regular', 'aria-hidden': true })}<span>{item.label}</span></Link>)}</nav>;
 };
 
 export default BottomNavbar;
